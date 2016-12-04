@@ -1,0 +1,17 @@
+@import '../../style/variables';
+
+.header{
+  position: absolute;
+  width: 100%;
+  height: $height-header;
+  left: 0;
+  top: 0;
+  background: #383838;
+  color: #fff;
+  line-height: $height-header;
+  z-index: 10;
+
+  &-title{
+    text-indent: $gap-max;
+  }
+}

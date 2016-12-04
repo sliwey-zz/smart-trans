@@ -1,0 +1,39 @@
+@import '../../style/variables';
+
+.login{
+
+    &-wrap{
+        padding-top: 200px;
+    }
+
+    &-title-wrap{
+        height: 48px;
+        margin-top: $gap-min;
+        margin-bottom: $gap-max;
+        color: #666;
+        font-size: 16px;
+        line-height: 48px;
+        border-bottom: 1px solid $color-border-default;
+    }
+
+    &-title{
+        position: relative;
+        display: inline-block;
+        height: 100%;
+        padding: 0 $gap-mid;
+        top: 1px;
+        border-bottom: 2px solid $color-border-primary;
+    }
+
+    &-form{
+        width: 300px;
+        margin: 0 auto;
+        padding: 0 $gap-max;
+        border: 1px solid $color-border-default;
+        border-radius: 5px;
+    }
+
+    &-btn{
+        width: 100%;
+    }
+}
