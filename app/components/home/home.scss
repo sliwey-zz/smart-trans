@@ -1,19 +1,22 @@
 @import '../../style/variables';
 
+body{
+  margin: 0;
+  overflow: hidden;
+}
+
 .root{
-  position: relative;
+  position: absolute;
+  width: 100%;
   height: 100%;
 }
 
 .wrap{
-  position: relative;
+  width: 100%;
   height: 100%;
 }
 
-.container{
-  position: absolute;
+.map{
   width: 100%;
   height: 100%;
-  padding-top: $height-header;
-  padding-left: $width-asider;
 }
