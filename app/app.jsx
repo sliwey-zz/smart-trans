@@ -1,18 +1,31 @@
-import React from 'react';
+import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import { Router, Route, browserHistory } from 'react-router';
-import Home from './components/home';
+// import { Router, Route, browserHistory } from 'react-router';
+import Rx from 'rxjs/Rx';
+import SearchBar from './components/search-bar';
+import './style/home.scss';
 
-import { Provider } from 'react-redux'
-import { createStore } from 'redux'
-import todoApp from './reducers';
+class App extends Component {
 
-let store = createStore(todoApp);
+  componentDidMount() {
+    let map = new AMap.Map('map',{
+      zoom: 11
+    });
+
+  }
+
+  render() {
+    return (
+      <div className="wrap">
+        <div id="map" className="map"></div>
+        <div className="left-panel">
+          <SearchBar />
+        </div>
+      </div>
+    )
+  }
+}
 
 ReactDOM.render((
-  <Provider store={store}>
-    <Router history={browserHistory}>
-      <Route path="/" component={Home} />
-    </Router>
-  </Provider>
+  <App />
 ), document.getElementById('app'));

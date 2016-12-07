@@ -60,6 +60,14 @@ module.exports = {
             {
                 test: /\.(png|jpg)$/,
                 loader: "url?limit=40000"
+            },
+            {
+                test: /\.woff2?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+                loader: "url"
+            },
+            {
+                test: /\.(ttf|eot|svg)(\?[\s\S]+)?$/,
+                loader: "file"
             }
         ]
     },

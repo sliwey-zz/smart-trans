@@ -1,21 +1,15 @@
 import Rx from 'rxjs/Rx';
-import React, { Component, PropTypes } from 'react';
-import { connect } from 'react-redux';
-// import ReactDOM from 'react-dom';
+import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import './home.scss';
 
-import { addTodo, completeTodo, toggleTodo, setVisibilityFilter, VisibilityFilters } from '../../actions';
-import AddTodo from '../todo/AddTodo'
-import TodoList from '../todo/TodoList'
-import Footer from '../todo/Footer'
-
-class App extends Component {
+export default class Home extends Component {
 
   componentDidMount() {
     // const searchKey = document.getElementById('searchKey');
     // const searchBtn = document.getElementById('searchBtn');
     let map = new AMap.Map('map',{
-      zoom: 10
+      zoom: 11
     });
 
     // let searchKey$ = Rx.Observable.fromEvent(searchKey, 'keyup')
@@ -51,47 +45,14 @@ class App extends Component {
   }
 
   render() {
-    // Injected by connect() call:
-    const { dispatch, visibleTodos, visibilityFilter } = this.props
+
     return (
       <div className="wrap">
         <div id="map" className="map"></div>
+        <div className="left-panel">
+
+        </div>
       </div>
     )
   }
 }
-
-// App.propTypes = {
-//   visibleTodos: PropTypes.arrayOf(PropTypes.shape({
-//     text: PropTypes.string.isRequired,
-//     completed: PropTypes.bool.isRequired
-//   }).isRequired).isRequired,
-//   visibilityFilter: PropTypes.oneOf([
-//     'SHOW_ALL',
-//     'SHOW_COMPLETED',
-//     'SHOW_ACTIVE'
-//   ]).isRequired
-// }
-
-function selectTodos(todos, filter) {
-  switch (filter) {
-    case VisibilityFilters.SHOW_ALL:
-      return todos
-    case VisibilityFilters.SHOW_COMPLETED:
-      return todos.filter(todo => todo.completed)
-    case VisibilityFilters.SHOW_ACTIVE:
-      return todos.filter(todo => !todo.completed)
-  }
-}
-
-// Which props do we want to inject, given the global state?
-// Note: use https://github.com/faassen/reselect for better performance.
-function select(state) {
-  return {
-    visibleTodos: selectTodos(state.todos, state.visibilityFilter),
-    visibilityFilter: state.visibilityFilter
-  }
-}
-
-// 包装 component ，注入 dispatch 和 state 到其默认的 connect(select)(App) 中；
-export default connect(select)(App)
