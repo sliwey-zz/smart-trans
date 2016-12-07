@@ -1,3 +1,5 @@
+$color-border-default: #ccc;
+
 .search{
 
   &-box{
@@ -19,33 +21,11 @@
     width: 40px;
     height: 40px;
     background: #2ea9df;
+    color: #fff;
     vertical-align: top;
     border: 0;
     outline: 0;
     cursor: pointer;
-
-    &:before{
-      content: '';
-      position: absolute;
-      left: 12px;
-      top: 12px;
-      width: 16px;
-      height: 16px;
-      border: 2px solid #fff;
-      border-radius: 50%;
-      box-sizing: border-box;
-    }
-
-    &:after{
-      content: '';
-      position: absolute;
-      left: 27px;
-      top: 23px;
-      width: 2px;
-      height: 6px;
-      background: #fff;
-      transform: rotate(-45deg);
-    }
 
     &:hover{
       background: lighten(#2ea9df, 10%);
@@ -53,5 +33,63 @@
 
   }
 
+  &-result{
+    margin-top: 2px;
+    background: #fff;
+    box-shadow: 0 2px 2px rgba(0,0,0,.15);
+  }
+}
+
+.sr{
+
+  &-list{
+    margin-top: -2px;
+    border-top: 1px solid $color-border-default;
+  }
+
+  &-item{
+    height: 30px;
+    padding: 0 10px;
+    line-height: 30px;
+    color: #999;
+    font-size: 12px;
+    cursor: pointer;
+
+    &:hover{
+      background: #eee;
+    }
+  }
+
+  &-icon{
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    text-align: center;
+  }
+
+  &-title{
+    margin-left: 15px;
+    color: #666;
+  }
+
+  &-sub-title{
+    margin-left: 20px;
+  }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,12 +1,18 @@
 @import './normalize';
 @import './variables';
-@import './font-awesome';
+@import './font-awesome/font-awesome';
 
 body{
   font-family: Tahoma, Arial, 'Helvetica Neue', 'Hiragino Sans GB', 'Microsoft Yahei', sans-self;
   color: #666;
   font-size: 14px;
   overflow: hidden;
+}
+
+ul{
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .root{
