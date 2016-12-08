@@ -65,15 +65,19 @@ $color-border-default: #ccc;
     width: 15px;
     height: 15px;
     text-align: center;
+    line-height: 15px;
+    pointer-events: none;
   }
 
   &-title{
     margin-left: 15px;
     color: #666;
+    pointer-events: none;
   }
 
   &-sub-title{
     margin-left: 20px;
+    pointer-events: none;
   }
 
 }

@@ -3,9 +3,10 @@ import React, { Component } from 'react';
 import './search-bar.scss';
 
 export default class SerachBar extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
+      map: '',
       autoCompleteList: []
     }
 
@@ -13,7 +14,17 @@ export default class SerachBar extends Component {
   }
 
   handleClick(e) {
-    console.log(e)
+    let index = e.target.getAttribute('data-index');
+    let item = this.state.autoCompleteList[index];
+
+    console.log(this.state)
+    this.search(item.type, item.value);
+
+  }
+
+  search(type, value) {
+    //http://restapi.amap.com/v3/bus/linename?s=rsv3&extensions=all&key=fbd79c02b1207d950a9d040483ef40e5&pageIndex=1&city=%E5%AE%81%E6%B3%A2&offset=1&keywords=14&callback=jsonp_209191_
+
   }
 
   componentDidMount() {
@@ -26,7 +37,8 @@ export default class SerachBar extends Component {
     //                               .pluck('target', 'value');
 
     // let searchBtn$ = Rx.Observable.fromEvent(searchBtn, 'click');
-
+    console.log("1",this.props)
+    this.setState({map: this.props.map});
     Rx.Observable
       .fromEvent(searchKey, 'keyup')
       .debounceTime(250)
@@ -43,13 +55,11 @@ export default class SerachBar extends Component {
           this.setState({
             autoCompleteList: [
               {
-                id: 0,
                 type: 'bus',
                 value: '12路',
                 subValue: '浙江省宁波市'
               },
               {
-                id: 1,
                 type: 'poi',
                 value: '创新128',
                 subValue: '浙江省宁波市'
@@ -61,7 +71,7 @@ export default class SerachBar extends Component {
             autoCompleteList: []
           })
         }
-
+console.log(this.state);
       });
 
     Rx.Observable
@@ -101,8 +111,8 @@ export default class SerachBar extends Component {
 
 function ListItem(props) {
 
-  const listItems = props.list.map(item =>
-    <li className="sr-item" key={item.id} onClick={props.handleClick}>
+  const listItems = props.list.map((item, index) =>
+    <li className="sr-item" key={index} onClick={props.handleClick} data-index={index}>
       <span className="sr-icon"><i className={"fa fa-" + getIconName(item.type)}></i></span>
       <span className="sr-title">{item.value}</span>
       <span className="sr-sub-title">{item.subValue}</span>
