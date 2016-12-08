@@ -9,7 +9,7 @@ const TEM_PATH = path.resolve(APP_PATH, 'templates');
 module.exports = {
 
     entry: {
-        app: path.resolve(APP_PATH, "app.jsx")
+        app: path.resolve(APP_PATH, "app.js")
     },
 
     output: {
@@ -47,10 +47,6 @@ module.exports = {
                 test: /\.jsx?$/,
                 loader: "babel",
                 include: APP_PATH
-            },
-            {
-                test: /\.css$/,
-                loaders: ["style", "css"]
             },
             {
                 test: /\.scss$/,

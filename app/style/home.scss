@@ -15,13 +15,8 @@ ul{
   list-style: none;
 }
 
-.root{
-  position: absolute;
-  width: 100%;
-  height: 100%;
-}
-
 .wrap{
+  position: absolute;
   width: 100%;
   height: 100%;
 }
@@ -37,3 +32,102 @@ ul{
   top: 15px;
   width: 360px;
 }
+
+.search{
+
+  &-box{
+    height: 40px;
+    box-shadow: 0 2px 2px rgba(0,0,0,.15);
+  }
+
+  &-input{
+    float: left;
+    width: 320px;
+    height: 40px;
+    text-indent: 10px;
+    border: 0;
+    outline: 0;
+    box-sizing: border-box;
+  }
+
+  &-btn{
+    float: left;
+    width: 40px;
+    height: 40px;
+    background: #2ea9df;
+    color: #fff;
+    vertical-align: top;
+    border: 0;
+    outline: 0;
+    cursor: pointer;
+
+    &:hover{
+      background: lighten(#2ea9df, 10%);
+    }
+
+  }
+
+  &-result{
+    margin-top: 2px;
+    background: #fff;
+    box-shadow: 0 2px 2px rgba(0,0,0,.15);
+  }
+}
+
+.sr{
+
+  &-list{
+    margin-top: -2px;
+    border-top: 1px solid $color-border-default;
+  }
+
+  &-item{
+    height: 30px;
+    padding: 0 10px;
+    line-height: 30px;
+    color: #999;
+    font-size: 12px;
+    cursor: pointer;
+
+    &:hover{
+      background: #eee;
+    }
+  }
+
+  &-icon{
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    text-align: center;
+    line-height: 15px;
+    pointer-events: none;
+  }
+
+  &-title{
+    margin-left: 15px;
+    color: #666;
+    pointer-events: none;
+  }
+
+  &-sub-title{
+    margin-left: 20px;
+    pointer-events: none;
+  }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
