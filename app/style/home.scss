@@ -1,5 +1,6 @@
 @import './normalize';
 @import './variables';
+@import './mixins';
 @import './font-awesome/font-awesome';
 
 body{
@@ -9,10 +10,36 @@ body{
   overflow: hidden;
 }
 
-ul{
+ul,li,p{
   margin: 0;
   padding: 0;
+}
+
+ul{
   list-style: none;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px
+}
+
+::-webkit-scrollbar-button {
+    height: 0;
+    width: 0
+}
+
+::-webkit-scrollbar-track {
+    background-color: #f1f1f1
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ccc
+}
+
+::-webkit-input-placeholder {
+    color: #aaa;
+    font-size: 14px
 }
 
 .wrap{
@@ -54,7 +81,7 @@ ul{
     float: left;
     width: 40px;
     height: 40px;
-    background: #2ea9df;
+    background: $color-primary;
     color: #fff;
     vertical-align: top;
     border: 0;
@@ -62,23 +89,41 @@ ul{
     cursor: pointer;
 
     &:hover{
-      background: lighten(#2ea9df, 10%);
+      background: darken($color-primary, 5%);
     }
-
   }
 
   &-result{
-    margin-top: 2px;
+    position: absolute;
+    top: 50px;
+    left: 0;
+    width: 100%;
+    max-height: 460px;
     background: #fff;
     box-shadow: 0 2px 2px rgba(0,0,0,.15);
+    overflow-y: auto;
+
+    &.hide{
+      display: none;
+    }
   }
 }
 
 .sr{
 
   &-list{
-    margin-top: -2px;
+    position: absolute;
+    top: 40px;
+    left: 0;
+    width: 100%;
+    background: #fff;
     border-top: 1px solid $color-border-default;
+    box-shadow: 0 2px 2px rgba(0,0,0,.15);
+    z-index: 100;
+
+    &.hide{
+      display: none;
+    }
   }
 
   &-item{
@@ -116,7 +161,170 @@ ul{
 
 }
 
+.bus{
 
+  &-wrap{
+
+  }
+
+  &-list{
+    padding: 10px;
+
+    &.hide{
+      display: none;
+    }
+  }
+
+  &-item{
+    display: flex;
+    margin-bottom: 10px;
+    cursor: pointer;
+
+    &:hover{
+      .bi-abs {
+        border-color: $color-primary;
+      }
+    }
+
+    .bi-name{
+      display: flex;
+      flex: 1;
+      background: $color-primary;
+      color: #fff;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+
+      .bn-main{
+        margin-bottom: 5px;
+        font-size: 32px;
+        font-weight: bold;
+      }
+
+      .bn-sub{
+        font-size: 12px;
+      }
+    }
+
+    .bi-abs{
+      flex: 2;
+      padding: 5px 15px;
+      border: 1px solid $color-border-default;
+      border-left: 0;
+
+      .ba-row{
+        color: #888;
+        font-size: 12px;
+        line-height: 1.5;
+
+        &.name{
+          margin: 5px 0;
+          color: $color-primary;
+          font-size: 15px;
+        }
+      }
+
+      .ba-exchange{
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        margin: 0 5px;
+        cursor: pointer;
+        line-height: 20px;
+        text-align: center;
+        transition: .3s;
+
+        &:hover{
+          transform: rotate(360deg);
+
+        }
+      }
+    }
+  }
+
+  &-detail{
+
+    .bd-head{
+      display: flex;
+      padding: 10px;
+      background: $color-primary;
+      color: #fff;
+
+      .bh-name{
+        display: flex;
+        flex: 0 0 110px;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+
+        .bn-main{
+          margin-bottom: 5px;
+          font-size: 16px;
+          font-weight: bold;
+        }
+
+        .bn-sub{
+          font-size: 12px;
+        }
+      }
+
+      .bh-abs{
+        flex: 0 0 230px;
+        margin-left: -1px;
+        padding-left: 5px;
+        text-align: center;
+        border-left: 1px dashed #fff;
+
+        .ba-row{
+          font-size: 15px;
+        }
+
+        .ba-exchange{
+          display: inline-block;
+          width: 20px;
+          height: 20px;
+          margin: 5px 0;
+          cursor: pointer;
+          line-height: 20px;
+          text-align: center;
+          transition: .3s;
+
+          &:hover{
+            transform: rotate(360deg);
+
+          }
+        }
+      }
+    }
+
+    .bd-label-list{
+      @include clearfix;
+    }
+
+    .bd-label-item{
+      float: left;
+      width: 120px;
+      height: 26px;
+      color: #888;
+      text-indent: 5px;
+      font-size: 12px;
+      line-height: 26px;
+      border-bottom: 1px solid $color-border-default;
+      border-right: 1px solid $color-border-default;
+      box-sizing: border-box;
+
+      &:nth-child(3n) {
+        border-right: 0;
+      }
+
+      .li-value{
+        float: right;
+        position: relative;
+        right: 5px;
+      }
+    }
+  }
+}
 
 
 

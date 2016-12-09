@@ -4,13 +4,14 @@ import Rx from 'rxjs/Rx';
 const init = () => {
   let map = new AMap.Map('map',{
     zoom: 11
-  }); 
+  });
 
   // search
   const mapEle = document.getElementById('map');
   const searchKey = document.getElementById('searchKey');
   const searchBtn = document.getElementById('searchBtn');
   const acListEle = document.getElementById('acList');
+  const CSS_HIDE = 'hide';
   let autoCompleteList = [];
 
   Rx.Observable
@@ -33,7 +34,7 @@ const init = () => {
             subValue: '浙江省宁波市'
           },
           {
-            type: 'poi',
+            type: 'place',
             value: '创新128',
             subValue: '浙江省宁波市'
           }
@@ -58,7 +59,7 @@ const init = () => {
     .pluck('target')
     .subscribe(target => {
       let type = target.getAttribute('data-type');
-      let key = target.getAttribute('data-key').replace('路', '');
+      let key = target.getAttribute('data-key');
 
       searchDetail(type, key);
 
@@ -67,10 +68,17 @@ const init = () => {
 
 const renderAutoComplete = list => {
   const listEle = document.getElementById('acList');
+  const CSS_HIDE = 'hide';
+  let items = list || [];
   let html = '';
 
+  if (items.length === 0) {
+    listEle.classList.add(CSS_HIDE);
+  } else {
+    listEle.classList.remove(CSS_HIDE);
+  }
 
-  list.forEach(item => {
+  items.forEach(item => {
     let type = getIconName(item.type);
 
     html += `
@@ -93,7 +101,7 @@ const getIconName = type => {
     case 'bus':
       name = 'bus';
       break;
-    case 'poi':
+    case 'place':
       name = 'map-marker';
       break;
     default:
@@ -105,7 +113,7 @@ const getIconName = type => {
 
 const searchDetail = (type, key) => {
   if (type === 'bus') {
-    let url = `http://restapi.amap.com/v3/bus/linename?s=rsv3&extensions=all&key=fbd79c02b1207d950a9d040483ef40e5&pageIndex=1&city=宁波&offset=1&keywords=${key}`;
+    let url = `http://restapi.amap.com/v3/bus/linename?s=rsv3&extensions=all&key=fbd79c02b1207d950a9d040483ef40e5&pageIndex=1&city=宁波&offset=2&keywords=${key}`;
 
     fetch(url).then(res => {
       if (res.ok) {
@@ -116,7 +124,7 @@ const searchDetail = (type, key) => {
     })
   }
 
-  if (type === 'poi') {
+  if (type === 'place') {
     let url = `http://restapi.amap.com/v3/place/text?key=fbd79c02b1207d950a9d040483ef40e5&city=宁波&offset=1&s=rsv3&keywords=${key}`;
 
     fetch(url).then(res => {
@@ -128,9 +136,6 @@ const searchDetail = (type, key) => {
     })
   }
 }
-
-
-
 
 
 

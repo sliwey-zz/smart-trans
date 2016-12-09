@@ -16,8 +16,51 @@
           <input id="searchKey" class="search-input" type="text" placeholder="搜索地点、公交、路线" />
           <button id="searchBtn" class="search-btn"><i class="fa fa-search"></i></button>
         </div>
-        <div class="search-result">
-          <ul id="acList" class="sr-list"><!--待插入--></ul>
+        <ul id="acList" class="sr-list hide"><!--待插入--></ul>
+        <div id="searchResult" class="search-result">
+          <div id="busWrap" class="bus-wrap">
+            <ul id="busList" class="bus-list hide">
+              <li class="bus-item">
+                <div class="bi-name">
+                  <p class="bn-main">14</p>
+                  <p class="bn-sub">上午高峰区间</p>
+                </div>
+                <div class="bi-abs">
+                  <p class="ba-row name">
+                    <span class="ba-start">公交会展路站</span>
+                    <span class="ba-exchange"><i class="fa fa-exchange"></i></span>
+                    <span class="ba-end">第九医院</span>
+                  </p>
+                  <p class="ba-row">首末班：<span>05:30-21:00</span></p>
+                  <p class="ba-row">发车间隔：<span>7-15分钟</span></p>
+                  <p class="ba-row">票价：<span>2-5元</span></p>
+                </div>
+              </li>
+            </ul>
+            <div id="busDetail" class="bus-detail">
+              <div class="bd-head">
+                <div class="bh-name">
+                  <p class="bn-main">14路</p>
+                  <p class="bn-sub">上午高峰区间</p>
+                </div>
+                <div class="bh-abs">
+                  <p class="ba-row">公交会展路站</p>
+                  <span class="ba-exchange"><i class="fa fa-exchange fa-rotate-90"></i></span>
+                  <p class="ba-row">第九医院</p>
+                  </p>
+                </div>
+              </div>
+              <ul class="bd-label-list">
+                <li class="bd-label-item">首末班<span class="li-value">05:30-21:00</span></li>
+                <li class="bd-label-item">发车间隔<span class="li-value">7-15分钟</span></li>
+                <li class="bd-label-item">票价<span class="li-value">2-5元</span></li>
+                <li class="bd-label-item">拥堵<span class="li-value">5</span></li>
+                <li class="bd-label-item">拥挤<span class="li-value">3</span></li>
+                <li class="bd-label-item">准点率<span class="li-value">92%</span></li>
+              </ul>
+
+            </div>
+          </div>
         </div>
       </div>
     </div>
