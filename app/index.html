@@ -18,8 +18,8 @@
         </div>
         <ul id="acList" class="sr-list hide"><!--待插入--></ul>
         <div id="busList" class="search-result hide">
-          <ul class="bus-list">
-            <li class="bus-item">
+          <ul id="lineList" class="bus-list">
+            <!--<li class="bus-item">
               <div class="bi-name">
                 <p class="bn-main">14</p>
                 <p class="bn-sub">上午高峰区间</p>
@@ -34,7 +34,7 @@
                 <p class="ba-row">发车间隔：<span>7-15分钟</span></p>
                 <p class="ba-row">票价：<span>2-5元</span></p>
               </div>
-            </li>
+            </li>-->
           </ul> 
         </div>
         <div id="busDetail" class="search-result hide">
@@ -63,7 +63,7 @@
               <div class="bd-block">
                 <div class="bb-title">
                   <span class="bt-name">主要站点</span>
-                  <span class="bt-op fa fa-plus js-show-all"></span>
+                  <span class="bt-op fa fa-plus js-show-all" title="展开"></span>
                 </div>
                 <div class="bb-content">
                   <ul id="mainStop" class="bc-main-list">
@@ -76,8 +76,8 @@
               </div>
               <div class="bd-block">
                 <div class="bb-title">
-                  <span id="stopName" class="bt-name">东门口</span>
-                  <span class="bt-op fa fa-bell js-alarm"></span>
+                  <span id="stopName" class="bt-name"></span>
+                  <span class="bt-op fa fa-bell js-alarm" title="到站提醒"></span>
                 </div>
                 <div id="stopContent" class="bb-content">
                   <!--<div class="bc-time">
@@ -134,6 +134,9 @@
                   </div>-->
                 </div>
               </div>
+              <div class="bd-block">
+                <button id="allLineBtn" class="bb-btn" type="button">查看全部相关线路</button>
+              </div>
             </div>
           </div>
         </div>
@@ -141,10 +144,10 @@
           <div class="bus-stops">
             <div class="stop-title">
               <span class="st-name">全部站点</span>
-              <span class="st-op fa fa-close js-close"></span>
+              <span class="st-op fa fa-close js-close" title="关闭"></span>
             </div>
             <ul id="busStopList" class="stop-list">
-              <!--<li class="stop-item">东门口<span class="si-op fa fa-bell js-alarm"></span>
+              <!--<li class="stop-item">东门口<span class="si-op fa fa-bell js-alarm" titile="到站提醒"></span>
               </li>-->
             </ul>
           </div>

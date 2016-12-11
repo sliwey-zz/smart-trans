@@ -12,9 +12,11 @@ const init = () => {
   const searchKey = document.getElementById('searchKey');
   const searchBtn = document.getElementById('searchBtn');
   const acListEle = document.getElementById('acList');
+  const busListEle = document.getElementById('busList');
   const busDetailEle = document.getElementById('busDetail');
   const busStopEle = document.getElementById('busStop');
   const alarmWrapEle = document.getElementById('alarmWrap');
+  const allLineBtn = document.getElementById('allLineBtn');
   const CSS_SHOW = 'show';
   const CSS_HIDE = 'hide';
   const CSS_ACTIVE = 'active';
@@ -207,6 +209,50 @@ const init = () => {
         target.value = target.value.replace(/\D*/g, '');
         target.value = target.value.replace(/^(\d{2})(\d{2})$/, '$1:$2');
       });
+    
+    // 查看相关线路
+    Rx.Observable
+      .fromEvent(allLineBtn, 'click')
+      .pluck('target')
+      .subscribe(target => {
+        let key = target.getAttribute('data-key');
+        let count = target.getAttribute('data-count');
+
+        searchLines(key, count);
+        busDetailEle.classList.add(CSS_HIDE);
+
+      });
+    
+    // 列表双向
+    Rx.Observable
+      .fromEvent(busListEle, 'click')
+      .pluck('target')
+      .filter(target => target.classList.contains('js-exchange'))
+      .subscribe(target => {
+        let index = target.getAttribute('data-index');
+        let storage = new Storage('allLines');
+        let lines = storage.get();
+
+        lines[index].isReversed = !lines[index].isReversed;
+        storage.set(lines);
+
+        renderBusLines();
+
+      });
+    
+    // 列表选择
+    Rx.Observable
+      .fromEvent(busListEle, 'click')
+      .pluck('target')
+      .filter(target => target.classList.contains('bi-name'))
+      .subscribe(target => {
+        let key = target.getAttribute('data-key');
+
+        searchDetail('bus', key, map);
+
+        busListEle.classList.add(CSS_HIDE);
+      });
+
   
 }
 
@@ -255,6 +301,63 @@ const getIconName = type => {
   return name;
 }
 
+const formatTime = time => {
+  if (time.length !== 4) {
+    return '';
+  } else {
+    return time.replace(/^(\d{2})/, '$1:');
+  }
+}
+
+const searchLines = (key, count) => {
+  let url = `http://restapi.amap.com/v3/bus/linename?s=rsv3&extensions=all&key=fbd79c02b1207d950a9d040483ef40e5&pageIndex=1&city=宁波&offset=${count}&keywords=${key}`;
+
+  fetch(url).then(res => {
+    if (res.ok) {
+      res.json().then(data => {
+        let lines = data.buslines || [];
+        let length = lines.length;
+        let lineArr = [];
+        let storage = new Storage('allLines');
+
+        for (let i = 0; i < length; i += 2) {
+          let forward = lines[i];
+          let reverse = lines[i + 1];
+          let f_start = formatTime(forward.start_time);
+          let f_end = formatTime(forward.end_time);
+          let r_start = formatTime(reverse.start_time);
+          let r_end = formatTime(reverse.end_time);
+
+          lineArr.push({
+            isReversed: false,
+            forward: {
+              name: forward.name.replace(/\(\S*\)/g, ''),
+              start_stop: forward.start_stop,
+              end_stop: forward.end_stop,
+              time: f_start && f_end ? `${f_start}-${f_end}` : '',
+              price: forward.basic_price === forward.total_price ? `${forward.basic_price}元` : `${forward.basic_price}-${forward.total_price}元`,
+              intervals: '7-10分钟'
+            },
+            reverse: {
+              name: reverse.name.replace(/\(\S*\)/g, ''),
+              start_stop: reverse.start_stop,
+              end_stop: reverse.end_stop,
+              time: r_start && r_end ? `${r_start}-${r_end}` : '',
+              price: reverse.basic_price === reverse.total_price ? `${reverse.basic_price}元` : `${reverse.basic_price}-${reverse.total_price}元`,
+              intervals: '7-10分钟'
+            }
+          });
+        }
+
+        storage.set(lineArr);
+        renderBusLines();
+
+      });
+    }
+  });
+
+}
+
 const searchDetail = (type, key, map) => {
   if (type === 'bus') {
     let url = `http://restapi.amap.com/v3/bus/linename?s=rsv3&extensions=all&key=fbd79c02b1207d950a9d040483ef40e5&pageIndex=1&city=宁波&offset=2&keywords=${key}`;
@@ -269,6 +372,10 @@ const searchDetail = (type, key, map) => {
           if (lines.length === 2) {
             let forward = lines[0];
             let reverse = lines[1];
+            let f_start = formatTime(forward.start_time);
+            let f_end = formatTime(forward.end_time);
+            let r_start = formatTime(reverse.start_time);
+            let r_end = formatTime(reverse.end_time);
 
             busLine = {
               isReversed: false,
@@ -276,7 +383,7 @@ const searchDetail = (type, key, map) => {
                 name: forward.name.replace(/\(\S*\)/g, ''),
                 start_stop: forward.start_stop,
                 end_stop: forward.end_stop,
-                time: `${forward.start_time.replace(/^(\d{2})/, '$1:')}-${forward.end_time.replace(/^(\d{2})/, '$1:')}`,
+                time: f_start && f_end ? `${f_start}-${f_end}` : '',
                 price: forward.basic_price === forward.total_price ? `${forward.basic_price}元` : `${forward.basic_price}-${forward.total_price}元`,
                 intervals: '7-10分钟',
                 jam: 5,
@@ -290,7 +397,7 @@ const searchDetail = (type, key, map) => {
                 name: reverse.name.replace(/\(\S*\)/g, ''),
                 start_stop: reverse.start_stop,
                 end_stop: reverse.end_stop,
-                time: `${reverse.start_time.replace(/^(\d{2})/, '$1:')}-${reverse.end_time.replace(/^(\d{2})/, '$1:')}`,
+                time: r_start && r_end ? `${r_start}-${r_end}` : '',
                 price: reverse.basic_price === reverse.total_price ? `${reverse.basic_price}元` : `${reverse.basic_price}-${reverse.total_price}元`,
                 intervals: '7-10分钟',
                 jam: 4,
@@ -305,6 +412,15 @@ const searchDetail = (type, key, map) => {
 
           storage.set(busLine);
           renderBusDetail(busLine.forward, map);
+
+          if (data.count > 2) {
+            const allLineBtn = document.getElementById('allLineBtn');
+
+            allLineBtn.setAttribute('data-key', key);
+            allLineBtn.setAttribute('data-count', data.count);
+            allLineBtn.classList.add('show');
+          }          
+
         })
       }
     })
@@ -321,6 +437,41 @@ const searchDetail = (type, key, map) => {
       }
     })
   }
+}
+
+const renderBusLines = () => {
+  const lines = new Storage('allLines').get();
+  const busListEle = document.getElementById('busList');
+  const lineListEle = document.getElementById('lineList');
+  const CSS_HIDE = 'hide';
+  let tmpl = '';
+
+  lines.forEach((line, index) => {
+    let bus = line.isReversed ? line.reverse : line.forward;
+
+    tmpl += `
+      <li class="bus-item">
+        <div class="bi-name" data-key="${bus.name}">
+          <p class="bn-main">${bus.name}</p>
+          <p class="bn-sub"></p>
+        </div>
+        <div class="bi-abs">
+          <p class="ba-row name">
+            <span class="ba-start">${bus.start_stop}</span>
+            <span class="ba-exchange fa fa-exchange js-exchange" data-index="${index}"></span>
+            <span class="ba-end">${bus.end_stop}</span>
+          </p>
+          <p class="ba-row">首末班：<span>${bus.time}</span></p>
+          <p class="ba-row">发车间隔：<span>${bus.intervals}</span></p>
+          <p class="ba-row">票价：<span>${bus.price}</span></p>
+        </div>
+      </li>
+    `;
+  });
+
+  lineListEle.innerHTML = tmpl;
+  busListEle.classList.remove(CSS_HIDE);
+
 }
 
 const renderBusDetail = (busLine, map) => {
@@ -373,7 +524,7 @@ const renderBusDetail = (busLine, map) => {
   });
 
   busLine.stops.forEach((stop, index) => {
-    allStopsTmpl += `<li class="stop-item" data-id="${index}">${stop.name}<span class="si-op fa fa-bell js-alarm"></span></li>`;
+    allStopsTmpl += `<li class="stop-item" data-id="${index}">${stop.name}<span class="si-op fa fa-bell js-alarm" titile="到站提醒"></span></li>`;
   })
 
   bdHeadEle.innerHTML = headTmpl;

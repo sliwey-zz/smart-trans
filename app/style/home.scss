@@ -1,6 +1,7 @@
 @import './normalize';
 @import './variables';
 @import './mixins';
+@import './animation';
 @import './font-awesome/font-awesome';
 
 body{
@@ -186,31 +187,33 @@ ul{
   &-item{
     display: flex;
     margin-bottom: 10px;
-    cursor: pointer;
 
-    &:hover{
-      .bi-abs {
-        border-color: $color-primary;
-      }
-    }
+    // &:hover{
+    //   .bi-abs {
+    //     border-color: $color-primary;
+    //   }
+    // }
 
     .bi-name{
       display: flex;
       flex: 1;
+      padding: 5px;
       background: $color-primary;
       color: #fff;
       flex-direction: column;
       justify-content: center;
       text-align: center;
-
+      cursor: pointer;
+      
       .bn-main{
         margin-bottom: 5px;
-        font-size: 32px;
-        font-weight: bold;
+        font-size: 16px;
+        pointer-events: none;
       }
 
       .bn-sub{
         font-size: 12px;
+        pointer-events: none;
       }
     }
 
@@ -352,6 +355,7 @@ ul{
         background: #e0f4fd;
         line-height: 34px;
         border-left: 2px solid $color-primary;
+        overflow: hidden;
         @include clearfix;
 
         .bt-name{
@@ -367,6 +371,18 @@ ul{
           text-align: center;
           line-height: 34px;
           cursor: pointer;
+          transition: .3s;
+
+          &:hover{
+
+            &.fa-plus{
+              transform: scale(1.2);
+            }
+
+            &.fa-bell{
+              animation: shake-bell .3s linear forwards;
+            }
+          }
         }
       }
 
@@ -504,6 +520,28 @@ ul{
         }
 
       }
+
+      .bb-btn{
+        width: 330px;
+        height: 24px;
+        margin: 15px auto;
+        padding: 0;
+        background: $color-primary;
+        color: #fff;
+        font-size: 12px;
+        outline: 0;
+        border: 0;
+        border-radius: 3px;
+        display: none;
+
+        &:hover{
+          background: darken($color-primary, 5%);
+        }
+
+        &.show{
+          display: block;
+        }
+      }
     }
   }
 
@@ -529,6 +567,11 @@ ul{
         text-align: center;
         line-height: 34px;
         cursor: pointer;
+        transition: .3s linear;
+
+        &.fa-close:hover{
+          transform: rotate(180deg);
+        }
       }
     }
 
@@ -572,6 +615,10 @@ ul{
         text-align: center;
         transform: translate3d(100%, 0, 0);
         transition: .3s;
+
+        &.fa-bell:hover{
+          animation: shake-bell .3s linear forwards;
+        }
       }
     }
 
