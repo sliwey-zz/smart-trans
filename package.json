@@ -4,7 +4,7 @@
   "description": "Smart Transportation",
   "main": "index.js",
   "scripts": {
-    "dev": "webpack-dev-server --progress --profile --colors --hot --port 9999",
+    "dev": "webpack-dev-server --progress --profile --colors --hot --port 9999 --host 192.168.0.149",
     "build": "webpack --progress --profile --colors --config webpack.production.config.js"
   },
   "repository": {

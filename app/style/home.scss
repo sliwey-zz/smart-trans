@@ -54,7 +54,7 @@ ul{
   height: 100%;
 
   &-marker{
-    
+
     &-circle{
       width: 6px;
       height: 6px;
@@ -204,7 +204,7 @@ ul{
       justify-content: center;
       text-align: center;
       cursor: pointer;
-      
+
       .bn-main{
         margin-bottom: 5px;
         font-size: 16px;
@@ -653,7 +653,7 @@ ul{
     margin-left: -$winWidth / 2;
     margin-top: -$winHeight / 2;
     background: #fff;
-    box-shadow: 0 2px 2px rgba(0, 0, 0, .15); 
+    box-shadow: 0 2px 2px rgba(0, 0, 0, .15);
   }
 
   &-title{
@@ -692,7 +692,7 @@ ul{
     .an-line{
       display: flex;
       flex: 1;
-      padding: 10px 15px;      
+      padding: 10px 15px;
       color: #888;
       text-align: right;
       flex-direction: column;
@@ -722,7 +722,7 @@ ul{
 
   &-type{
     padding-top: 20px;
-    
+
     .at-row{
       margin-bottom: 15px;
       padding: 0 15px;
@@ -750,6 +750,79 @@ ul{
   }
 }
 
+.place{
+
+  &-detail{
+
+    .pd-head{
+      height: 100px;
+      background: $color-primary;
+      color: #fff;
+      @include clearfix;
+
+      &-left{
+        display: flex;
+        float: left;
+        width: 260px;
+        height: 100%;
+        padding: 10px;
+        flex-direction: column;
+        justify-content: center;
+        box-sizing: border-box;
+      }
+
+      &-right{
+        float: right;
+        width: 100px;
+        height: 100%;
+        padding: 10px 0;
+        box-sizing: border-box;
+      }
+
+      .ph-name{
+        text-align: center;
+        font-size: 18px;
+        @include text-overflow;
+      }
+
+      .ph-btn{
+        display: block;
+        width: 80px;
+        height: 25px;
+        margin: 10px auto;
+        background: $color-primary;
+        font-size: 12px;
+        border: 1px solid #fff;
+        border-radius: 3px;
+        transition: .3s;
+
+        &:hover{
+          background: #fff;
+          color: $color-primary;
+        }
+      }
+    }
+
+    .pd-body{
+      overflow-y: auto;
+
+      .pb-block{
+
+      }
+
+      .pb-title{
+        height: 30px;
+        padding: 0 10px;
+        background: #e0f4fd;
+        line-height: 30px;
+      }
+
+      .pb-content{
+
+      }
+    }
+  }
+}
 
 
 
