@@ -1,6 +1,7 @@
 const path = require("path");
 const webpack = require("webpack");
 const HtmlwebpackPlugin = require('html-webpack-plugin');
+const ExtractTextWebpackPlugin = require('extract-text-webpack-plugin');
 const autoprefixer = require('autoprefixer');
 const ROOT_PATH = path.resolve(__dirname);
 const APP_PATH = path.resolve(ROOT_PATH, 'app');
@@ -50,6 +51,10 @@ module.exports = {
         include: APP_PATH
       },
       {
+        test: /\.css$/,
+        loader: ExtractTextWebpackPlugin.extract("style-loader", "css-loader")
+      },
+      {
         test: /\.scss$/,
         loaders: ['style', 'css', 'postcss', 'sass'],
         include: APP_PATH
@@ -89,6 +94,8 @@ module.exports = {
     new HtmlwebpackPlugin({
       template: path.resolve(APP_PATH, "index.html"),
       inject: "body"
-    })
+    }),
+
+    new ExtractTextWebpackPlugin('style.css')
   ]
 };

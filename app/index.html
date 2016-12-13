@@ -70,7 +70,7 @@
             </ul>
           </div>
         </div>
-        <div class="search-result">
+        <div id="placeDetail" class="search-result">
           <div class="place-detail">
             <div class="pd-head">
               <div class="pd-head-left">
@@ -85,41 +85,117 @@
               <div class="pb-block">
                 <div class="pb-title">
                   <i class="fa fa-bus"></i>
-                  <span class="pb-name">附近公交</span>
+                  <span class="pb-name">公交站</span>
                 </div>
                 <div class="pb-content">
-                  <ul class="pb-station-list">
-                    <li class="pb-station-item">
+                  <ul id="p_busStationList" class="pb-station-list">
+                    <li class="pb-station-item active">
                       <p class="psi-title">
-                        <span class="psi-name">国际航运中心</span>
+                        <span class="psi-name"><i class="psi-icon fa fa-caret-right"></i>国际航运中心</span>
                         <span class="psi-dis">101米</span>
                       </p>
-                      <ul class="psi-line-list">
-                        <li class="psi-line-item active">14路</li>
-                        <li class="psi-line-item">30路</li>
-                        <li class="psi-line-item">155路</li>
-                        <li class="psi-line-item">168路</li>
-                        <li class="psi-line-item">168路</li>
-                        <li class="psi-line-item">168路</li>
-                        <li class="psi-line-item">168路</li>
-                        <li class="psi-line-item">168路</li>
-                        <li class="psi-line-item">168路</li>
-                      </ul>
-                      <div class="psi-line-detail">
-                        <div class="psi-detail-title">
-                          <span class="psi-detail-name">14路</span>
-                          <span class="psi-detail-right">
-                            <span class="dr-item">拥堵&emsp;5</span>
-                            <span class="dr-item">拥挤&emsp;3</span>
-                            <span class="dr-item">准点率&emsp;92%</span>
-                          </span>
+                      <div class="psi-content">
+                        <ul class="psi-line-list">
+                          <li class="psi-line-item active">14路</li>
+                          <li class="psi-line-item">30路</li>
+                          <li class="psi-line-item">155路</li>
+                          <li class="psi-line-item">168路</li>
+                          <li class="psi-line-item">168路</li>
+                          <li class="psi-line-item">168路</li>
+                          <li class="psi-line-item">168路</li>
+                          <li class="psi-line-item">168路</li>
+                          <li class="psi-line-item">168路</li>
+                        </ul>
+                        <div class="psi-line-detail">
+                          <div class="psi-detail-title">
+                            <span class="psi-detail-name">14路</span>
+                            <span class="psi-detail-right">
+                              <span class="dr-item">拥堵&emsp;5</span>
+                              <span class="dr-item">拥挤&emsp;3</span>
+                              <span class="dr-item">准点率&emsp;92%</span>
+                            </span>
+                          </div>
+                          <div class="psi-detail-content">
+                            <span class="psi-line-stop">公交会展路站</span>
+                            <span class="psi-line-arrow"></span>
+                            <span class="psi-line-stop">第九医院</span>
+                            <span class="psi-line-time forward">11:20</span>
+                            <span class="psi-line-time reverse">11:25</span>
+                          </div>
                         </div>
-                        <div class="psi-detail-content">
-                          <span class="psi-line-stop">公交会展路站</span>
-                          <span class="psi-line-arrow"></span>
-                          <span class="psi-line-stop">第九医院</span>
-                          <span class="psi-line-time forward">11:20</span>
-                          <span class="psi-line-time reverse">11:25</span>
+                      </div>
+                    </li>
+                    <li class="pb-station-item">
+                      <p class="psi-title">
+                        <span class="psi-name"><i class="psi-icon fa fa-caret-right"></i>会展中心</span>
+                        <span class="psi-dis">260米</span>
+                        <!--<span class="psi-op fa fa-chevron-down"></span>-->
+                      </p>
+                      <div class="psi-content">
+                        <ul class="psi-line-list">
+                          <li class="psi-line-item active">14路</li>
+                          <li class="psi-line-item">30路</li>
+                          <li class="psi-line-item">155路</li>
+                          <li class="psi-line-item">168路</li>
+                          <li class="psi-line-item">168路</li>
+                          <li class="psi-line-item">168路</li>
+                          <li class="psi-line-item">168路</li>
+                          <li class="psi-line-item">168路</li>
+                          <li class="psi-line-item">168路</li>
+                        </ul>
+                        <div class="psi-line-detail">
+                          <div class="psi-detail-title">
+                            <span class="psi-detail-name">14路</span>
+                            <span class="psi-detail-right">
+                              <span class="dr-item">拥堵&emsp;5</span>
+                              <span class="dr-item">拥挤&emsp;3</span>
+                              <span class="dr-item">准点率&emsp;92%</span>
+                            </span>
+                          </div>
+                          <div class="psi-detail-content">
+                            <span class="psi-line-stop">公交会展路站</span>
+                            <span class="psi-line-arrow"></span>
+                            <span class="psi-line-stop">第九医院</span>
+                            <span class="psi-line-time forward">11:20</span>
+                            <span class="psi-line-time reverse">11:25</span>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                    <li class="pb-station-item">
+                      <p class="psi-title">
+                        <span class="psi-name"><i class="psi-icon fa fa-caret-right"></i>世纪大道民安东路口</span>
+                        <span class="psi-dis">350米</span>
+                        <!--<span class="psi-op fa fa-chevron-down"></span>-->
+                      </p>
+                      <div class="psi-content">
+                        <ul class="psi-line-list">
+                          <li class="psi-line-item active">14路</li>
+                          <li class="psi-line-item">30路</li>
+                          <li class="psi-line-item">155路</li>
+                          <li class="psi-line-item">168路</li>
+                          <li class="psi-line-item">168路</li>
+                          <li class="psi-line-item">168路</li>
+                          <li class="psi-line-item">168路</li>
+                          <li class="psi-line-item">168路</li>
+                          <li class="psi-line-item">168路</li>
+                        </ul>
+                        <div class="psi-line-detail">
+                          <div class="psi-detail-title">
+                            <span class="psi-detail-name">14路</span>
+                            <span class="psi-detail-right">
+                              <span class="dr-item">拥堵&emsp;5</span>
+                              <span class="dr-item">拥挤&emsp;3</span>
+                              <span class="dr-item">准点率&emsp;92%</span>
+                            </span>
+                          </div>
+                          <div class="psi-detail-content">
+                            <span class="psi-line-stop">公交会展路站</span>
+                            <span class="psi-line-arrow"></span>
+                            <span class="psi-line-stop">第九医院</span>
+                            <span class="psi-line-time forward">11:20</span>
+                            <span class="psi-line-time reverse">11:25</span>
+                          </div>
                         </div>
                       </div>
                     </li>
@@ -128,18 +204,52 @@
               </div>
               <div class="pb-block">
                 <div class="pb-title">
-                  <span class="pb-name fa fa-subway"></span>
+                  <i class="fa fa-subway"></i>
+                  <span class="pb-name">地铁站</span>
                 </div>
                 <div class="pb-content">
-
+                  <ul id="p_subwayStationList" class="pb-station-list">
+                    <li class="pb-station-item">
+                      <p class="psi-title active">
+                        <span class="psi-name"><i class="psi-icon fa fa-caret-right"></i>海晏北路</span>
+                        <span class="psi-dis">789米</span>
+                      </p>
+                      <div class="psi-content active">
+                        <ul class="psi-line-list">
+                          <li class="psi-line-item active">一号线</li>
+                        </ul>
+                        <div class="psi-line-detail">
+                          <div class="psi-detail-content">
+                            <span class="psi-line-stop">公交会展路站</span>
+                            <span class="psi-line-arrow"></span>
+                            <span class="psi-line-stop">第九医院</span>
+                            <span class="psi-line-time forward">11:20</span>
+                            <span class="psi-line-time reverse">11:25</span>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
                 </div>
               </div>
               <div class="pb-block">
                 <div class="pb-title">
-                  <span class="pb-name fa fa-bicycle"></span>
+                  <i class="fa fa-bicycle"></i>
+                  <span class="pb-name">公共自行车点</span>
                 </div>
                 <div class="pb-content">
-
+                  <ul class="pb-bike-list">
+                    <li class="pb-bike-item">
+                      <span class="pbi-name">天一广场东门口</span>
+                      <span class="pbi-dis">25米</span>
+                      <span class="pbi-num">15/30</span>
+                    </li>
+                    <li class="pb-bike-item">
+                      <span class="pbi-name">开明街5号</span>
+                      <span class="pbi-dis">505米</span>
+                      <span class="pbi-num">1/30</span>
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>

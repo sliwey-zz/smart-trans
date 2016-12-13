@@ -17,6 +17,8 @@ const init = () => {
   const busStopEle = document.getElementById('busStop');
   const alarmWrapEle = document.getElementById('alarmWrap');
   const allLineBtn = document.getElementById('allLineBtn');
+  const placeBusStationListEle = document.getElementById('p_busStationList');
+  const placeSubwayStationListEle = document.getElementById('p_subwayStationList');
   const CSS_SHOW = 'show';
   const CSS_HIDE = 'hide';
   const CSS_ACTIVE = 'active';
@@ -50,11 +52,11 @@ const init = () => {
         ]
       } else {
         const results = document.querySelectorAll('.search-result');
-        
+
         Array.from(results).forEach(result => {
           result.classList.add(CSS_HIDE);
         });
-        
+
         autoCompleteList = [];
         map.clearMap();
       }
@@ -147,7 +149,7 @@ const init = () => {
 
         busLine.isReversed = isReversed;
         storage.set(busLine);
-  
+
         renderBusDetail(bus, map);
       });
 
@@ -169,7 +171,7 @@ const init = () => {
         openAlarm(info);
 
       });
-    
+
     Rx.Observable
       .fromEvent(busStopEle, 'click')
       .pluck('target')
@@ -186,7 +188,7 @@ const init = () => {
 
         openAlarm(info);
       });
-    
+
     // 关闭到站提醒
     Rx.Observable
       .fromEvent(alarmWrapEle, 'click')
@@ -195,7 +197,7 @@ const init = () => {
       .subscribe(target => {
         alarmWrapEle.classList.remove(CSS_SHOW);
       });
-  
+
     // 提醒时间输入限制
     const alarmStartEle = document.getElementById('alarmStart');
     const alarmEndEle = document.getElementById('alarmEnd');
@@ -209,7 +211,7 @@ const init = () => {
         target.value = target.value.replace(/\D*/g, '');
         target.value = target.value.replace(/^(\d{2})(\d{2})$/, '$1:$2');
       });
-    
+
     // 查看相关线路
     Rx.Observable
       .fromEvent(allLineBtn, 'click')
@@ -222,7 +224,7 @@ const init = () => {
         busDetailEle.classList.add(CSS_HIDE);
 
       });
-    
+
     // 列表双向
     Rx.Observable
       .fromEvent(busListEle, 'click')
@@ -239,7 +241,7 @@ const init = () => {
         renderBusLines();
 
       });
-    
+
     // 列表选择
     Rx.Observable
       .fromEvent(busListEle, 'click')
@@ -253,7 +255,26 @@ const init = () => {
         busListEle.classList.add(CSS_HIDE);
       });
 
-  
+    // 地物详情-附近车站切换
+    const placeBusStationList$ = Rx.Observable.fromEvent(placeBusStationListEle, 'click');
+    const placeSubwayStationList$ = Rx.Observable.fromEvent(placeSubwayStationListEle, 'click');
+
+    Rx.Observable.merge(placeBusStationList$, placeSubwayStationList$)
+      .pluck('target')
+      .filter(target => target.classList.contains('psi-title'))
+      .subscribe(target => {
+        const curItem = target.parentNode;
+        const listEle = curItem.parentNode;
+        const items = listEle.querySelectorAll('.pb-station-item');
+
+        Array.from(items).forEach(item => {
+          if (item === curItem && !item.classList.contains(CSS_ACTIVE)) {
+            item.classList.add(CSS_ACTIVE);
+          } else {
+            item.classList.remove(CSS_ACTIVE);
+          }
+        });
+      });
 }
 
 const renderAutoComplete = list => {
@@ -368,7 +389,7 @@ const searchDetail = (type, key, map) => {
           let lines = data.buslines || [];
           let busLine = {};
           let storage = new Storage('busLine');
-          
+
           if (lines.length === 2) {
             let forward = lines[0];
             let reverse = lines[1];
@@ -419,7 +440,7 @@ const searchDetail = (type, key, map) => {
             allLineBtn.setAttribute('data-key', key);
             allLineBtn.setAttribute('data-count', data.count);
             allLineBtn.classList.add('show');
-          }          
+          }
 
         })
       }
