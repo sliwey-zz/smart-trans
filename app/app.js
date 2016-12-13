@@ -453,8 +453,13 @@ const searchDetail = (type, key, map) => {
     fetch(url).then(res => {
       if (res.ok) {
         res.json().then(data => {
-          console.log(data)
-        })
+          let poi = data.pois[0] || null;
+
+          if (poi) {
+            renderPlaceDetail(poi, map);
+          }
+
+        });
       }
     })
   }
@@ -716,6 +721,16 @@ const openAlarm = info => {
   alarmStartEle.value = startTime;
   alarmEndEle.value = endTime;
   alarmWrapEle.classList.add(CSS_SHOW);
+}
+
+const renderPlaceDetail = (place, map) => {
+  const placeDetailEle = document.getElementById('placeDetail');
+  const CSS_HIDE = 'hide';
+
+
+
+  
+  placeDetailEle.classList.remove(CSS_HIDE);
 
 }
 
