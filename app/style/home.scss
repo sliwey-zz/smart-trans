@@ -785,10 +785,12 @@ ul{
       }
 
       .ph-btn{
+        position: relative;
         display: block;
         width: 80px;
         height: 25px;
         margin: 10px auto;
+        padding-left: 20px;
         background: $color-primary;
         font-size: 12px;
         border: 1px solid #fff;
@@ -798,6 +800,58 @@ ul{
         &:hover{
           background: #fff;
           color: $color-primary;
+        }
+
+        &.to{
+
+          &:before{
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 4px;
+            left: 8px;
+            top: 7px;
+            border-top: 2px solid currentColor;
+            border-left: 2px solid currentColor;
+          }
+
+          &:after{
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            left: 3px;
+            top: 13px;
+            border: 6px solid transparent;
+            border-top-color: currentColor;
+          }
+
+        }
+
+        &.from{
+
+          &:before{
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 4px;
+            left: 5px;
+            top: 11px;
+            border-bottom: 2px solid currentColor;
+            border-right: 2px solid currentColor;
+          }
+
+          &:after{
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            left: 10px;
+            top: -1px;
+            border: 6px solid transparent;
+            border-bottom-color: currentColor;
+          }
+
         }
       }
     }
@@ -900,7 +954,6 @@ ul{
       .psi-line-list{
         padding: 5px;
         background: #fff;
-        border-bottom: 1px dashed $color-border-default;
         @include clearfix;
       }
 
@@ -925,6 +978,12 @@ ul{
       .psi-line-detail{
         padding: 5px;
         background: #fff;
+        border-top: 1px dashed $color-border-default;
+        display: none;
+
+        &.show{
+          display: block;
+        }
       }
 
       .psi-detail-title{
@@ -978,6 +1037,31 @@ ul{
         width: 125px;
         text-align: center;
         @include text-overflow;
+
+        &.start:before,
+        &.end:before{
+          content: '';
+          display: inline-block;
+          width: 20px;
+          height: 20px;
+          margin-right: 3px;
+          color: #fff;
+          line-height: 20px;
+          text-align: center;
+          border-radius: 50%;
+          transform: scale(.8);
+        }
+
+        &.start:before{
+          content: '起';
+          background: #86c166;
+        }
+
+        &.end:before{
+          content: '终';
+          background: #c73e3a;
+        }
+
       }
 
       .psi-line-arrow{

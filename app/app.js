@@ -80,10 +80,16 @@ const init = () => {
     .subscribe(target => {
       let type = target.getAttribute('data-type');
       let key = target.getAttribute('data-key');
+      const results = document.querySelectorAll('.search-result');
+
+      Array.from(results).forEach(result => {
+        result.classList.add(CSS_HIDE);
+      });
+
+      map.clearMap();
+      acListEle.classList.add(CSS_HIDE);
 
       searchDetail(type, key, map);
-
-      acListEle.classList.add(CSS_HIDE);
 
     });
 
@@ -274,6 +280,65 @@ const init = () => {
             item.classList.remove(CSS_ACTIVE);
           }
         });
+      });
+
+    // 地物详情-公交线路切换
+    placeBusStationList$
+      .pluck('target')
+      .filter(target => target.classList.contains('psi-line-item'))
+      .subscribe(target => {
+        const wrapEle = target.parentNode.parentNode.querySelector('.psi-line-detail');
+        const items = target.parentNode.querySelectorAll('.psi-line-item');
+        let key = target.textContent;
+        let url = `http://restapi.amap.com/v3/bus/linename?s=rsv3&extensions=all&key=fbd79c02b1207d950a9d040483ef40e5&pageIndex=1&city=宁波&offset=1&keywords=${key}`;
+        let tmpl = '';
+
+        fetch(url).then(res => {
+          if (res.ok) {
+            res.json().then(data => {
+              let line = data.buslines[0];
+              let busLine = {
+                name: line.name.replace(/\(\S*\)/g, ''),
+                start_stop: line.start_stop,
+                end_stop: line.end_stop,
+                jam: 5,
+                crowd: 3,
+                on_time: 92,
+                forward_time: '11:20',
+                reverse_time: '11:20',
+                path: line.polyline.split(';').map(poi => [poi.split(',')[0], poi.split(',')[1]])
+              };
+
+              tmpl += `
+                <div class="psi-detail-title">
+                  <span class="psi-detail-name">${busLine.name}</span>
+                  <span class="psi-detail-right">
+                    <span class="dr-item">拥堵&emsp;${busLine.jam}</span>
+                    <span class="dr-item">拥挤&emsp;${busLine.crowd}</span>
+                    <span class="dr-item">准点率&emsp;${busLine.on_time}%</span>
+                  </span>
+                </div>
+                <div class="psi-detail-content">
+                  <span class="psi-line-stop start">${busLine.start_stop}</span>
+                  <span class="psi-line-arrow"></span>
+                  <span class="psi-line-stop end">${busLine.end_stop}</span>
+                  <span class="psi-line-time forward">${busLine.forward_time}</span>
+                  <span class="psi-line-time reverse">${busLine.reverse_time}</span>
+                </div>
+              `;
+
+              wrapEle.innerHTML = tmpl;
+              wrapEle.classList.add(CSS_SHOW);
+            })
+          }
+        });
+
+        Array.from(items).forEach(item => {
+          item.classList.remove(CSS_ACTIVE);
+        })
+
+        target.classList.add(CSS_ACTIVE);
+
       });
 }
 
@@ -725,13 +790,99 @@ const openAlarm = info => {
 
 const renderPlaceDetail = (place, map) => {
   const placeDetailEle = document.getElementById('placeDetail');
+  const placeNameEle = document.getElementById('placeName');
+  const busStationListEle = document.getElementById('p_busStationList');
+  const subwayStationListEle = document.getElementById('p_subwayStationList');
   const CSS_HIDE = 'hide';
+  const position = {
+    lng: place.location.split(',')[0],
+    lat: place.location.split(',')[1]
+  };
+  let busStopTmpl = '';
+
+  let url = `http://restapi.amap.com/v3/place/around?s=rsv3&location=${place.location}&key=fbd79c02b1207d950a9d040483ef40e5&radius=500&offset=5&page=1&city=宁波&keywords=公交站`;
+
+  getNearBy(position)
+    .subscribe(resArr => {
+      resArr.forEach((res, index) => {
+        if (res.ok) {
+          let type = '';
+
+          switch (index) {
+            case 0:
+              type = 'bus';
+              break;
+            case 1:
+              type = 'subway';
+              break;
+          }
+
+          res.json().then(data => {
+            console.log(type, data.pois)
+          })
+        }
+      })
+    })
+
+  fetch(url).then(res => {
+    if (res.ok) {
+      res.json().then(data => {
+        const busStops = data.pois || [];
+
+        busStops.forEach((stop, index) => {
+          let style = index === 0 ? 'active' : '';
+
+          busStopTmpl += `
+            <li class="pb-station-item ${style}">
+              <p class="psi-title">
+                <span class="psi-name"><i class="psi-icon fa fa-caret-right"></i>${stop.name}</span>
+                <span class="psi-dis">${stop.distance}米</span>
+              </p>
+              <div class="psi-content">
+                <ul class="psi-line-list">
+          `;
+
+          stop.address.split(';').forEach(busname => {
+            busStopTmpl += `<li class="psi-line-item">${busname.replace(/\.*/g, '')}</li>`;
+          });
+
+          busStopTmpl += `
+                </ul>
+                <div class="psi-line-detail">
+                </div>
+              </div>
+            </li>
+          `;
+        });
+
+        placeNameEle.textContent = place.name;
+        placeNameEle.setAttribute('title', place.name);
+        busStationListEle.innerHTML = busStopTmpl;
+        placeDetailEle.classList.remove(CSS_HIDE);
+      });
+    }
+  });
+
+  let marker = new AMap.Marker({
+    map: map,
+    position: [position.lng, position.lat],
+    animation: 'AMAP_ANIMATION_DROP'
+  });
+
+  map.setFitView(marker);
+
+console.log(place)
+
+}
 
 
+const getNearBy = poi => {
+  const busUrl = `http://restapi.amap.com/v3/place/around?s=rsv3&location=${poi.lng},${poi.lat}&key=fbd79c02b1207d950a9d040483ef40e5&radius=500&offset=5&page=1&city=宁波&keywords=公交站`;
+  const subwayUrl = `http://restapi.amap.com/v3/place/around?s=rsv3&location=${poi.lng},${poi.lat}&key=fbd79c02b1207d950a9d040483ef40e5&radius=500&offset=5&page=1&city=宁波&keywords=地铁站`;
+  const fetchBus$ = Rx.Observable.fromPromise(fetch(busUrl));
+  const fetchSubway$ = Rx.Observable.fromPromise(fetch(subwayUrl));
 
-  
-  placeDetailEle.classList.remove(CSS_HIDE);
-
+  return Rx.Observable.forkJoin(fetchBus$, fetchSubway$);
 }
 
 init();
