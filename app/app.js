@@ -17,8 +17,7 @@ const init = () => {
   const busStopEle = document.getElementById('busStop');
   const alarmWrapEle = document.getElementById('alarmWrap');
   const allLineBtn = document.getElementById('allLineBtn');
-  const placeBusStationListEle = document.getElementById('p_busStationList');
-  const placeSubwayStationListEle = document.getElementById('p_subwayStationList');
+  const placeNearbyEle = document.getElementById('placeNearby');
   const CSS_SHOW = 'show';
   const CSS_HIDE = 'hide';
   const CSS_ACTIVE = 'active';
@@ -47,6 +46,11 @@ const init = () => {
           {
             type: 'place',
             value: '创新128',
+            subValue: '浙江省宁波市'
+          },
+          {
+            type: 'place',
+            value: '宁波文化广场',
             subValue: '浙江省宁波市'
           }
         ]
@@ -93,210 +97,212 @@ const init = () => {
 
     });
 
-    // 查看全部站点
-    Rx.Observable
-      .fromEvent(busDetailEle, 'click')
-      .pluck('target', 'classList')
-      .filter(classList => classList.contains('js-show-all'))
-      .subscribe(target => {
-        busDetailEle.classList.add(CSS_HIDE);
-        busStopEle.classList.remove(CSS_HIDE);
-      });
+  // 查看全部站点
+  Rx.Observable
+    .fromEvent(busDetailEle, 'click')
+    .pluck('target', 'classList')
+    .filter(classList => classList.contains('js-show-all'))
+    .subscribe(target => {
+      busDetailEle.classList.add(CSS_HIDE);
+      busStopEle.classList.remove(CSS_HIDE);
+    });
 
-    // 关闭全部站点
-    Rx.Observable
-      .fromEvent(busStopEle, 'click')
-      .pluck('target', 'classList')
-      .filter(classList => classList.contains('js-close'))
-      .subscribe(target => {
-        busDetailEle.classList.remove(CSS_HIDE);
-        busStopEle.classList.add(CSS_HIDE);
-      });
+  // 关闭全部站点
+  Rx.Observable
+    .fromEvent(busStopEle, 'click')
+    .pluck('target', 'classList')
+    .filter(classList => classList.contains('js-close'))
+    .subscribe(target => {
+      busDetailEle.classList.remove(CSS_HIDE);
+      busStopEle.classList.add(CSS_HIDE);
+    });
 
-    // 查看站点详情
-    const busDetail$ = Rx.Observable.fromEvent(busDetailEle, 'click');
-    const busStop$ = Rx.Observable.fromEvent(busStopEle, 'click');
+  // 查看站点详情
+  const busDetail$ = Rx.Observable.fromEvent(busDetailEle, 'click');
+  const busStop$ = Rx.Observable.fromEvent(busStopEle, 'click');
 
-    Rx.Observable.merge(busDetail$, busStop$)
-      .pluck('target')
-      .filter(target => target.classList.contains('bc-main-item') || target.classList.contains('stop-item'))
-      .subscribe(target => {
-        const mainStopEle = document.getElementById('mainStop');
-        const items = mainStopEle.querySelectorAll('.bc-main-item');
-        const stopId = target.getAttribute('data-id');
-        let busLine = new Storage('busLine').get();
-        let bus = busLine.isReversed ? busLine.reverse : busLine.forward;
-        let stop = bus.stops[stopId];
+  Rx.Observable.merge(busDetail$, busStop$)
+    .pluck('target')
+    .filter(target => target.classList.contains('bc-main-item') || target.classList.contains('stop-item'))
+    .subscribe(target => {
+      const mainStopEle = document.getElementById('mainStop');
+      const items = mainStopEle.querySelectorAll('.bc-main-item');
+      const stopId = target.getAttribute('data-id');
+      let busLine = new Storage('busLine').get();
+      let bus = busLine.isReversed ? busLine.reverse : busLine.forward;
+      let stop = bus.stops[stopId];
 
-        Array.from(items).forEach(item => {
-          if (stopId === item.getAttribute('data-id')) {
-            item.classList.add(CSS_ACTIVE);
-          } else {
-            item.classList.remove(CSS_ACTIVE);
-          }
-        });
-
-        busStopEle.classList.add(CSS_HIDE);
-        busDetailEle.classList.remove(CSS_HIDE);
-        renderStopDetail(stop);
-
-      });
-
-    // 反向查询
-    Rx.Observable
-      .fromEvent(busDetailEle, 'click')
-      .pluck('target', 'classList')
-      .filter(classList => classList.contains('ba-exchange'))
-      .subscribe(target => {
-        let storage = new Storage('busLine');
-        let isReversed = !storage.get().isReversed;
-        let busLine = storage.get();
-        let bus = isReversed ? busLine.reverse : busLine.forward;
-
-        busLine.isReversed = isReversed;
-        storage.set(busLine);
-
-        renderBusDetail(bus, map);
-      });
-
-    // 到站提醒
-    Rx.Observable
-      .fromEvent(busDetailEle, 'click')
-      .pluck('target')
-      .filter(target => target.classList.contains('js-alarm'))
-      .subscribe(target => {
-        let busLine = new Storage('busLine').get();
-        let bus = busLine.isReversed ? busLine.reverse : busLine.forward;
-        let info = {
-          name: document.getElementById('stopName').textContent,
-          linename: bus.name,
-          start_stop: bus.start_stop,
-          end_stop: bus.end_stop
+      Array.from(items).forEach(item => {
+        if (stopId === item.getAttribute('data-id')) {
+          item.classList.add(CSS_ACTIVE);
+        } else {
+          item.classList.remove(CSS_ACTIVE);
         }
-
-        openAlarm(info);
-
       });
 
-    Rx.Observable
-      .fromEvent(busStopEle, 'click')
-      .pluck('target')
-      .filter(target => target.classList.contains('js-alarm'))
-      .subscribe(target => {
-        let busLine = new Storage('busLine').get();
-        let bus = busLine.isReversed ? busLine.reverse : busLine.forward;
-        let info = {
-          name: target.parentNode.textContent,
-          linename: bus.name,
-          start_stop: bus.start_stop,
-          end_stop: bus.end_stop
+      busStopEle.classList.add(CSS_HIDE);
+      busDetailEle.classList.remove(CSS_HIDE);
+      renderStopDetail(stop);
+
+    });
+
+  // 反向查询
+  Rx.Observable
+    .fromEvent(busDetailEle, 'click')
+    .pluck('target', 'classList')
+    .filter(classList => classList.contains('ba-exchange'))
+    .subscribe(target => {
+      let storage = new Storage('busLine');
+      let isReversed = !storage.get().isReversed;
+      let busLine = storage.get();
+      let bus = isReversed ? busLine.reverse : busLine.forward;
+
+      busLine.isReversed = isReversed;
+      storage.set(busLine);
+
+      renderBusDetail(bus, map);
+    });
+
+  // 到站提醒
+  Rx.Observable
+    .fromEvent(busDetailEle, 'click')
+    .pluck('target')
+    .filter(target => target.classList.contains('js-alarm'))
+    .subscribe(target => {
+      let busLine = new Storage('busLine').get();
+      let bus = busLine.isReversed ? busLine.reverse : busLine.forward;
+      let info = {
+        name: document.getElementById('stopName').textContent,
+        linename: bus.name,
+        start_stop: bus.start_stop,
+        end_stop: bus.end_stop
+      }
+
+      openAlarm(info);
+
+    });
+
+  Rx.Observable
+    .fromEvent(busStopEle, 'click')
+    .pluck('target')
+    .filter(target => target.classList.contains('js-alarm'))
+    .subscribe(target => {
+      let busLine = new Storage('busLine').get();
+      let bus = busLine.isReversed ? busLine.reverse : busLine.forward;
+      let info = {
+        name: target.parentNode.textContent,
+        linename: bus.name,
+        start_stop: bus.start_stop,
+        end_stop: bus.end_stop
+      }
+
+      openAlarm(info);
+    });
+
+  // 关闭到站提醒
+  Rx.Observable
+    .fromEvent(alarmWrapEle, 'click')
+    .pluck('target')
+    .filter(target => target.classList.contains('js-alarm-close'))
+    .subscribe(target => {
+      alarmWrapEle.classList.remove(CSS_SHOW);
+    });
+
+  // 提醒时间输入限制
+  const alarmStartEle = document.getElementById('alarmStart');
+  const alarmEndEle = document.getElementById('alarmEnd');
+
+  const alarmStart$ = Rx.Observable.fromEvent(alarmStartEle, 'keyup');
+  const alarmEnd$ = Rx.Observable.fromEvent(alarmEndEle, 'keyup');
+
+  Rx.Observable.merge(alarmStart$, alarmEnd$)
+    .pluck('target',)
+    .subscribe(target => {
+      target.value = target.value.replace(/\D*/g, '');
+      target.value = target.value.replace(/^(\d{2})(\d{2})$/, '$1:$2');
+    });
+
+  // 查看相关线路
+  Rx.Observable
+    .fromEvent(allLineBtn, 'click')
+    .pluck('target')
+    .subscribe(target => {
+      let key = target.getAttribute('data-key');
+      let count = target.getAttribute('data-count');
+
+      searchLines(key, count);
+      busDetailEle.classList.add(CSS_HIDE);
+
+    });
+
+  // 列表双向
+  Rx.Observable
+    .fromEvent(busListEle, 'click')
+    .pluck('target')
+    .filter(target => target.classList.contains('js-exchange'))
+    .subscribe(target => {
+      let index = target.getAttribute('data-index');
+      let storage = new Storage('allLines');
+      let lines = storage.get();
+
+      lines[index].isReversed = !lines[index].isReversed;
+      storage.set(lines);
+
+      renderBusLines();
+
+    });
+
+  // 列表选择
+  Rx.Observable
+    .fromEvent(busListEle, 'click')
+    .pluck('target')
+    .filter(target => target.classList.contains('bi-name'))
+    .subscribe(target => {
+      let key = target.getAttribute('data-key');
+
+      searchDetail('bus', key, map);
+
+      busListEle.classList.add(CSS_HIDE);
+    });
+
+  // 地物详情-附近车站切换
+  Rx.Observable.fromEvent(placeNearbyEle, 'click')
+    .pluck('target')
+    .filter(target => target.classList.contains('psi-title'))
+    .subscribe(target => {
+      const curItem = target.parentNode;
+      const listEle = curItem.parentNode;
+      const items = listEle.querySelectorAll('.pb-station-item');
+
+      Array.from(items).forEach(item => {
+        if (item === curItem && !item.classList.contains(CSS_ACTIVE)) {
+          item.classList.add(CSS_ACTIVE);
+        } else {
+          item.classList.remove(CSS_ACTIVE);
         }
-
-        openAlarm(info);
       });
+    });
 
-    // 关闭到站提醒
-    Rx.Observable
-      .fromEvent(alarmWrapEle, 'click')
-      .pluck('target')
-      .filter(target => target.classList.contains('js-alarm-close'))
-      .subscribe(target => {
-        alarmWrapEle.classList.remove(CSS_SHOW);
-      });
+  // 地物详情-公交线路切换
+  let linePath;
+  let stopMarkers;
+  Rx.Observable.fromEvent(placeNearbyEle, 'click')
+    .pluck('target')
+    .filter(target => target.classList.contains('psi-line-item'))
+    .subscribe(target => {
+      const wrapEle = target.parentNode.parentNode.querySelector('.psi-line-detail');
+      const items = target.parentNode.querySelectorAll('.psi-line-item');
+      let key = target.textContent;
+      let url = `http://restapi.amap.com/v3/bus/linename?s=rsv3&extensions=all&key=fbd79c02b1207d950a9d040483ef40e5&pageIndex=1&city=宁波&offset=1&keywords=${key}`;
+      let tmpl = '';
 
-    // 提醒时间输入限制
-    const alarmStartEle = document.getElementById('alarmStart');
-    const alarmEndEle = document.getElementById('alarmEnd');
-
-    const alarmStart$ = Rx.Observable.fromEvent(alarmStartEle, 'keyup');
-    const alarmEnd$ = Rx.Observable.fromEvent(alarmEndEle, 'keyup');
-
-    Rx.Observable.merge(alarmStart$, alarmEnd$)
-      .pluck('target',)
-      .subscribe(target => {
-        target.value = target.value.replace(/\D*/g, '');
-        target.value = target.value.replace(/^(\d{2})(\d{2})$/, '$1:$2');
-      });
-
-    // 查看相关线路
-    Rx.Observable
-      .fromEvent(allLineBtn, 'click')
-      .pluck('target')
-      .subscribe(target => {
-        let key = target.getAttribute('data-key');
-        let count = target.getAttribute('data-count');
-
-        searchLines(key, count);
-        busDetailEle.classList.add(CSS_HIDE);
-
-      });
-
-    // 列表双向
-    Rx.Observable
-      .fromEvent(busListEle, 'click')
-      .pluck('target')
-      .filter(target => target.classList.contains('js-exchange'))
-      .subscribe(target => {
-        let index = target.getAttribute('data-index');
-        let storage = new Storage('allLines');
-        let lines = storage.get();
-
-        lines[index].isReversed = !lines[index].isReversed;
-        storage.set(lines);
-
-        renderBusLines();
-
-      });
-
-    // 列表选择
-    Rx.Observable
-      .fromEvent(busListEle, 'click')
-      .pluck('target')
-      .filter(target => target.classList.contains('bi-name'))
-      .subscribe(target => {
-        let key = target.getAttribute('data-key');
-
-        searchDetail('bus', key, map);
-
-        busListEle.classList.add(CSS_HIDE);
-      });
-
-    // 地物详情-附近车站切换
-    const placeBusStationList$ = Rx.Observable.fromEvent(placeBusStationListEle, 'click');
-    const placeSubwayStationList$ = Rx.Observable.fromEvent(placeSubwayStationListEle, 'click');
-
-    Rx.Observable.merge(placeBusStationList$, placeSubwayStationList$)
-      .pluck('target')
-      .filter(target => target.classList.contains('psi-title'))
-      .subscribe(target => {
-        const curItem = target.parentNode;
-        const listEle = curItem.parentNode;
-        const items = listEle.querySelectorAll('.pb-station-item');
-
-        Array.from(items).forEach(item => {
-          if (item === curItem && !item.classList.contains(CSS_ACTIVE)) {
-            item.classList.add(CSS_ACTIVE);
-          } else {
-            item.classList.remove(CSS_ACTIVE);
-          }
-        });
-      });
-
-    // 地物详情-公交线路切换
-    placeBusStationList$
-      .pluck('target')
-      .filter(target => target.classList.contains('psi-line-item'))
-      .subscribe(target => {
-        const wrapEle = target.parentNode.parentNode.querySelector('.psi-line-detail');
-        const items = target.parentNode.querySelectorAll('.psi-line-item');
-        let key = target.textContent;
-        let url = `http://restapi.amap.com/v3/bus/linename?s=rsv3&extensions=all&key=fbd79c02b1207d950a9d040483ef40e5&pageIndex=1&city=宁波&offset=1&keywords=${key}`;
-        let tmpl = '';
-
-        fetch(url).then(res => {
-          if (res.ok) {
-            res.json().then(data => {
-              let line = data.buslines[0];
+      fetch(url).then(res => {
+        if (res.ok) {
+          res.json().then(data => {
+            let lines = data.buslines || [];
+            
+            if (lines.length > 0) {
+              let line = lines[0];
               let busLine = {
                 name: line.name.replace(/\(\S*\)/g, ''),
                 start_stop: line.start_stop,
@@ -306,7 +312,8 @@ const init = () => {
                 on_time: 92,
                 forward_time: '11:20',
                 reverse_time: '11:20',
-                path: line.polyline.split(';').map(poi => [poi.split(',')[0], poi.split(',')[1]])
+                path: line.polyline.split(';').map(poi => [poi.split(',')[0], poi.split(',')[1]]),
+                stops: line.busstops
               };
 
               tmpl += `
@@ -329,17 +336,34 @@ const init = () => {
 
               wrapEle.innerHTML = tmpl;
               wrapEle.classList.add(CSS_SHOW);
-            })
-          }
-        });
 
-        Array.from(items).forEach(item => {
-          item.classList.remove(CSS_ACTIVE);
-        })
 
-        target.classList.add(CSS_ACTIVE);
+              let stopPois = busLine.stops.map(stop => [stop.location.split(',')[0], stop.location.split(',')[1]]);
+              
+              linePath = drawLine(map, busLine.path);
+              stopMarkers = addMarkers(map, stopPois);
+              map.setFitView(linePath);              
 
+            } else {
+              wrapEle.innerHTML = tmpl;
+              wrapEle.classList.remove(CSS_SHOW);
+            }
+
+          })
+        }
       });
+
+      Array.from(items).forEach(item => {
+        item.classList.remove(CSS_ACTIVE);
+      })
+
+      target.classList.add(CSS_ACTIVE);
+
+      if (linePath && stopMarkers) {
+        map.remove(stopMarkers.concat(linePath));
+      }
+      
+    });
 }
 
 const renderAutoComplete = list => {
@@ -750,15 +774,20 @@ const drawLine = (map, path) => {
 }
 
 const addMarkers = (map, poiList, type) => {
+  let markers = [];
 
   poiList.forEach(poi => {
-    new AMap.Marker({
+    let marker = new AMap.Marker({
       map: map,
       position: poi,
       content: '<div class="map-marker-circle"></div>',
       offset: new AMap.Pixel(-3, -3)
-    })
-  })
+    });
+
+    markers.push(marker);
+  });
+
+  return markers;
 
 }
 
@@ -791,6 +820,7 @@ const openAlarm = info => {
 const renderPlaceDetail = (place, map) => {
   const placeDetailEle = document.getElementById('placeDetail');
   const placeNameEle = document.getElementById('placeName');
+  const placeNearbyEle = document.getElementById('placeNearby');
   const busStationListEle = document.getElementById('p_busStationList');
   const subwayStationListEle = document.getElementById('p_subwayStationList');
   const CSS_HIDE = 'hide';
@@ -799,69 +829,47 @@ const renderPlaceDetail = (place, map) => {
     lat: place.location.split(',')[1]
   };
   let busStopTmpl = '';
+  let nearbyTmpl = '';
 
   let url = `http://restapi.amap.com/v3/place/around?s=rsv3&location=${place.location}&key=fbd79c02b1207d950a9d040483ef40e5&radius=500&offset=5&page=1&city=宁波&keywords=公交站`;
 
   getNearBy(position)
     .subscribe(resArr => {
-      resArr.forEach((res, index) => {
+      let promiseArr = [];
+
+      resArr.forEach(res => {
         if (res.ok) {
-          let type = '';
-
-          switch (index) {
-            case 0:
-              type = 'bus';
-              break;
-            case 1:
-              type = 'subway';
-              break;
-          }
-
-          res.json().then(data => {
-            console.log(type, data.pois)
-          })
+          promiseArr.push(Rx.Observable.fromPromise(res.json()));
         }
-      })
-    })
-
-  fetch(url).then(res => {
-    if (res.ok) {
-      res.json().then(data => {
-        const busStops = data.pois || [];
-
-        busStops.forEach((stop, index) => {
-          let style = index === 0 ? 'active' : '';
-
-          busStopTmpl += `
-            <li class="pb-station-item ${style}">
-              <p class="psi-title">
-                <span class="psi-name"><i class="psi-icon fa fa-caret-right"></i>${stop.name}</span>
-                <span class="psi-dis">${stop.distance}米</span>
-              </p>
-              <div class="psi-content">
-                <ul class="psi-line-list">
-          `;
-
-          stop.address.split(';').forEach(busname => {
-            busStopTmpl += `<li class="psi-line-item">${busname.replace(/\.*/g, '')}</li>`;
-          });
-
-          busStopTmpl += `
-                </ul>
-                <div class="psi-line-detail">
-                </div>
-              </div>
-            </li>
-          `;
-        });
-
-        placeNameEle.textContent = place.name;
-        placeNameEle.setAttribute('title', place.name);
-        busStationListEle.innerHTML = busStopTmpl;
-        placeDetailEle.classList.remove(CSS_HIDE);
       });
-    }
-  });
+
+      Rx.Observable.forkJoin(promiseArr)
+        .subscribe(dataArr => {
+          console.log(dataArr)
+          dataArr.forEach((data, index) => {
+            switch(index) {
+              case 0:
+                nearbyTmpl += getNearbyBusTmpl(data.pois);
+                break;
+              case 1:
+                nearbyTmpl += getNearbySubwayTmpl(data.pois);
+                break;
+              case 2:
+                nearbyTmpl += getNearbyBikeTmpl(data.pois);
+                break;
+              case 3:
+                //taxi
+                break;
+            }
+          }); 
+
+          placeNameEle.textContent = place.name;
+          placeNameEle.setAttribute('title', place.name);
+          placeNearbyEle.innerHTML = nearbyTmpl;
+          placeDetailEle.classList.remove(CSS_HIDE);
+
+        });
+    })
 
   let marker = new AMap.Marker({
     map: map,
@@ -875,7 +883,6 @@ console.log(place)
 
 }
 
-
 const getNearBy = poi => {
   const busUrl = `http://restapi.amap.com/v3/place/around?s=rsv3&location=${poi.lng},${poi.lat}&key=fbd79c02b1207d950a9d040483ef40e5&radius=500&offset=5&page=1&city=宁波&keywords=公交站`;
   const subwayUrl = `http://restapi.amap.com/v3/place/around?s=rsv3&location=${poi.lng},${poi.lat}&key=fbd79c02b1207d950a9d040483ef40e5&radius=500&offset=5&page=1&city=宁波&keywords=地铁站`;
@@ -883,6 +890,144 @@ const getNearBy = poi => {
   const fetchSubway$ = Rx.Observable.fromPromise(fetch(subwayUrl));
 
   return Rx.Observable.forkJoin(fetchBus$, fetchSubway$);
+}
+
+const getNearbyBusTmpl = stopList => {
+  let tmpl = '';
+
+  if (stopList.length === 0) {
+    return tmpl;
+  }
+
+  tmpl = `
+    <div class="pb-block">
+      <div class="pb-title">
+        <i class="fa fa-bus"></i>
+        <span class="pb-name">公交站</span>
+      </div>
+      <div class="pb-content">
+        <ul class="pb-station-list">
+  `;
+
+  stopList.forEach(stop => {
+
+    tmpl += `
+      <li class="pb-station-item">
+        <p class="psi-title">
+          <span class="psi-name"><i class="psi-icon fa fa-caret-right"></i>${stop.name}</span>
+          <span class="psi-dis">${stop.distance}米</span>
+        </p>
+        <div class="psi-content">
+          <ul class="psi-line-list">
+    `;
+
+    stop.address.split(';').forEach(busname => {
+      tmpl += `<li class="psi-line-item">${busname.replace(/\.*/g, '')}</li>`;
+    });
+
+    tmpl += `
+          </ul>
+          <div class="psi-line-detail">
+          </div>
+        </div>
+      </li>
+    `;
+  });
+
+  tmpl += `
+        </ul>
+      </div>
+    </div>
+  `;
+
+  return tmpl;
+}
+
+const getNearbySubwayTmpl = stopList => {
+  let tmpl = '';
+
+  if (stopList.length === 0) {
+    return tmpl;
+  }
+
+  tmpl = `
+    <div class="pb-block">
+      <div class="pb-title">
+        <i class="fa fa-subway"></i>
+        <span class="pb-name">地铁站</span>
+      </div>
+      <div class="pb-content">
+        <ul class="pb-station-list">
+  `;
+
+  stopList.forEach(stop => {
+
+    tmpl += `
+      <li class="pb-station-item">
+        <p class="psi-title">
+          <span class="psi-name"><i class="psi-icon fa fa-caret-right"></i>${stop.name}</span>
+          <span class="psi-dis">${stop.distance}米</span>
+        </p>
+        <div class="psi-content">
+          <ul class="psi-line-list">
+    `;
+
+    stop.address.split(';').forEach(busname => {
+      tmpl += `<li class="psi-line-item">${busname.replace(/\.*/g, '')}</li>`;
+    });
+
+    tmpl += `
+          </ul>
+          <div class="psi-line-detail">
+          </div>
+        </div>
+      </li>
+    `;
+  });
+
+  tmpl += `
+        </ul>
+      </div>
+    </div>
+  `;
+
+  return tmpl;
+}
+
+const getNearbyBikeTmpl = stopList => {
+  let tmpl = '';
+
+  if (stopList.length === 0) {
+    return tmpl;
+  }
+
+  tmpl = `
+    <div class="pb-block">
+      <div class="pb-title">
+        <i class="fa fa-bicycle"></i>
+        <span class="pb-name">公共自行车点</span>
+      </div>
+      <div class="pb-content">
+        <ul class="pb-bike-list">
+  `;
+
+  stopList.forEach(stop => {
+    tmpl += `
+      <li class="pb-bike-item">
+        <span class="pbi-name">天一广场东门口</span>
+        <span class="pbi-dis">25米</span>
+        <span class="pbi-num">15/30</span>
+      </li>
+    `;
+  });
+
+  tmpl += `
+        </ul>
+      </div>
+    </div>
+  `;
+
+  return tmpl;
 }
 
 init();
