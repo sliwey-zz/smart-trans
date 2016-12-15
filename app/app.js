@@ -300,7 +300,7 @@ const init = () => {
         if (res.ok) {
           res.json().then(data => {
             let lines = data.buslines || [];
-            
+
             if (lines.length > 0) {
               let line = lines[0];
               let busLine = {
@@ -339,10 +339,10 @@ const init = () => {
 
 
               let stopPois = busLine.stops.map(stop => [stop.location.split(',')[0], stop.location.split(',')[1]]);
-              
+
               linePath = drawLine(map, busLine.path);
               stopMarkers = addMarkers(map, stopPois);
-              map.setFitView(linePath);              
+              map.setFitView(linePath);
 
             } else {
               wrapEle.innerHTML = tmpl;
@@ -362,8 +362,49 @@ const init = () => {
       if (linePath && stopMarkers) {
         map.remove(stopMarkers.concat(linePath));
       }
-      
+
     });
+
+  // 路线规划
+  const planStartEle = document.getElementById('planStart');
+  const planEndEle = document.getElementById('planEnd');
+  const planAcListEle = document.getElementById('planAcList');
+
+  //http://restapi.amap.com/v3/direction/transit/integrated?origin=116.379028,39.865042&destination=116.427281,39.903719&city=%E5%8C%97%E4%BA%AC%E5%B8%82&strategy=0&nightflag=0&extensions=all&s=rsv3&key=fbd79c02b1207d950a9d040483ef40e5&callback=jsonp_325878_
+
+  // autocomplete
+  const planStart$ = Rx.Observable.fromEvent(planStartEle, 'keyup');
+  const planEnd$ = Rx.Observable.fromEvent(planEndEle, 'keyup');
+
+  Rx.Observable.merge(planStart$, planEnd$)
+    .debounceTime(250)
+    .pluck('target', 'value')
+    .switchMap(value => fetch(`http://restapi.amap.com/v3/place/text?key=fbd79c02b1207d950a9d040483ef40e5&city=宁波&offset=10&s=rsv3&keywords=${value}`))
+    .subscribe(res => {
+      if (res.ok) {
+        res.json().then(data => {
+          let pois = data.pois || [];
+          let tmpl = '';
+
+          pois.forEach(poi => {
+            tmpl += `
+              <li class="plan-ac-item" data-poi="${poi.location}" title="${poi.name}">
+                <span class="pai-icon fa fa-map-marker"></span>
+                <span class="pai-title">${poi.name}</span>
+                <span class="pai-sub-title">${poi.cityname}${poi.adname}</span>
+              </li>
+            `;
+          });
+          console.log(data);
+
+          planAcListEle.innerHTML = tmpl;
+          planAcListEle.classList.add(CSS_SHOW);
+
+        });
+      }
+    });
+
+
 }
 
 const renderAutoComplete = list => {
@@ -861,7 +902,7 @@ const renderPlaceDetail = (place, map) => {
                 //taxi
                 break;
             }
-          }); 
+          });
 
           placeNameEle.textContent = place.name;
           placeNameEle.setAttribute('title', place.name);

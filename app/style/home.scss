@@ -1133,10 +1133,155 @@ ul{
   }
 }
 
-.plane{
+.plan{
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
 
   &.hide{
     display: none;
+  }
+
+  &-head{
+    position: relative;
+    padding: 40px;
+    background: $color-primary;
+    color: #fff;
+  }
+
+  &-icon{
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    font-size: 18px;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: .3s;
+
+    &:hover{
+      background: #26a6de;
+      border-radius:50%;
+    }
+  }
+
+  &-close{
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+
+  &-search{
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+  }
+
+  &-form{
+    position: relative;
+    width: 280px;
+    margin: 0 auto;
+
+    .pf{
+
+      &-row{
+        margin: 10px 0;
+        height: 30px;
+        background: #26a6de;
+        line-height: 30px;
+        @include clearfix;
+      }
+
+      &-label{
+        float: left;
+        width: 30px;
+        text-align: center;
+        font-size: 12px;
+        border-right: 1px solid $color-border-primary;
+        box-sizing: border-box;
+      }
+
+      &-input{
+        float: left;
+        width: 250px;
+        height: 30px;
+        background: transparent;
+        line-height: 30px;
+        text-indent: 5px;
+        border: 0;
+        outline: 0;
+        box-sizing: border-box;
+
+        &::placeholder{
+          color: #efefef;
+        }
+      }
+
+      &-exchange{
+        position: absolute;
+        left: -35px;
+        top: 50%;
+        margin-top: -15px;
+        transform: rotate(90deg);
+        transition: .3s;
+
+        &:hover{
+          transform: rotate(270deg);
+        }
+      }
+    }
+  }
+
+  &-body{
+
+  }
+
+  &-ac-list{
+    background: #fff;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, .15);
+    display: none;
+
+    &.show{
+      display: block;
+    }
+  }
+
+  &-ac-item{
+    height: 30px;
+    padding: 0 10px;
+    line-height: 30px;
+    color: #999;
+    font-size: 12px;
+    cursor: pointer;
+    @include text-overflow;
+
+    &:hover{
+      background: #eee;
+    }
+
+    .pai{
+
+      &-icon{
+        display: inline-block;
+        width: 15px;
+        height: 15px;
+        text-align: center;
+        line-height: 15px;
+        pointer-events: none;
+      }
+
+      &-title{
+        margin-left: 15px;
+        color: #666;
+        pointer-events: none;
+      }
+
+      &-sub-title{
+        margin-left: 20px;
+        pointer-events: none;
+      }
+    }
   }
 
 }
