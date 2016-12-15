@@ -1134,13 +1134,17 @@ ul{
 }
 
 .plan{
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
 
-  &.hide{
+  &-wrap{
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
     display: none;
+
+    &.show{
+      display: block;
+    }
   }
 
   &-head{
@@ -1234,7 +1238,8 @@ ul{
   }
 
   &-body{
-
+    max-height: 350px;
+    overflow-y: auto;
   }
 
   &-ac-list{
@@ -1286,7 +1291,9 @@ ul{
 
 }
 
-
+.amap-call{
+  display: none;
+}
 
 
 

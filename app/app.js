@@ -366,42 +366,134 @@ const init = () => {
     });
 
   // 路线规划
+  const planWrapEle = document.getElementById('planWrap');
+  const planCloseBtn = document.getElementById('planCloseBtn');
+  const planSearchBtn = document.getElementById('planSearchBtn');
+  const planExchangeBtn = document.getElementById('planExchangeBtn');
   const planStartEle = document.getElementById('planStart');
   const planEndEle = document.getElementById('planEnd');
   const planAcListEle = document.getElementById('planAcList');
 
-  //http://restapi.amap.com/v3/direction/transit/integrated?origin=116.379028,39.865042&destination=116.427281,39.903719&city=%E5%8C%97%E4%BA%AC%E5%B8%82&strategy=0&nightflag=0&extensions=all&s=rsv3&key=fbd79c02b1207d950a9d040483ef40e5&callback=jsonp_325878_
-
   // autocomplete
-  const planStart$ = Rx.Observable.fromEvent(planStartEle, 'keyup');
-  const planEnd$ = Rx.Observable.fromEvent(planEndEle, 'keyup');
+  const planStartKeyup$ = Rx.Observable.fromEvent(planStartEle, 'keyup');
+  const planEndKeyup$ = Rx.Observable.fromEvent(planEndEle, 'keyup');
+  const planStartBlur$ = Rx.Observable.fromEvent(planStartEle, 'blur');
+  const planEndBlur$ = Rx.Observable.fromEvent(planEndEle, 'blur');
+  const planStartClick$ = Rx.Observable.fromEvent(planStartEle, 'click');
+  const planEndClick$ = Rx.Observable.fromEvent(planEndEle, 'click');
 
-  Rx.Observable.merge(planStart$, planEnd$)
+  Rx.Observable.merge(planStartKeyup$, planEndKeyup$)
     .debounceTime(250)
     .pluck('target', 'value')
-    .switchMap(value => fetch(`http://restapi.amap.com/v3/place/text?key=fbd79c02b1207d950a9d040483ef40e5&city=宁波&offset=10&s=rsv3&keywords=${value}`))
-    .subscribe(res => {
-      if (res.ok) {
-        res.json().then(data => {
-          let pois = data.pois || [];
-          let tmpl = '';
+    // .switchMap(value => fetch(`http://restapi.amap.com/v3/place/text?key=fbd79c02b1207d950a9d040483ef40e5&city=宁波&offset=10&s=rsv3&keywords=${value}`))
+    .subscribe(value => {
+      let url = `http://restapi.amap.com/v3/place/text?key=fbd79c02b1207d950a9d040483ef40e5&city=宁波&offset=10&s=rsv3&keywords=${value}`;
 
-          pois.forEach(poi => {
-            tmpl += `
-              <li class="plan-ac-item" data-poi="${poi.location}" title="${poi.name}">
-                <span class="pai-icon fa fa-map-marker"></span>
-                <span class="pai-title">${poi.name}</span>
-                <span class="pai-sub-title">${poi.cityname}${poi.adname}</span>
-              </li>
-            `;
-          });
-          console.log(data);
 
-          planAcListEle.innerHTML = tmpl;
-          planAcListEle.classList.add(CSS_SHOW);
-
-        });
+      if (!value) {
+        planAcListEle.innerHTML = '';
+        planAcListEle.classList.remove(CSS_SHOW);
+        return;
       }
+
+      fetch(url).then(res => {
+        if (res.ok) {
+          res.json().then(data => {
+            let pois = data.pois || [];
+            let tmpl = '';
+
+            pois.forEach(poi => {
+              tmpl += `
+                <li class="plan-ac-item" data-poi="${poi.location}" title="${poi.name}">
+                  <span class="pai-icon fa fa-map-marker"></span>
+                  <span class="pai-title">${poi.name}</span>
+                  <span class="pai-sub-title">${poi.cityname}${poi.adname}</span>
+                </li>
+              `;
+            });
+
+            planAcListEle.innerHTML = tmpl;
+            planAcListEle.classList.add(CSS_SHOW);
+
+          });
+        }
+      });
+    });
+
+  Rx.Observable.merge(planStartBlur$, planEndBlur$)
+    .subscribe(target => {
+      setTimeout(() => {
+        planAcListEle.classList.remove(CSS_SHOW);
+      }, 150);
+    });
+
+  // 选择
+  Rx.Observable
+    .fromEvent(planAcListEle, 'click')
+    .pluck('target')
+    .filter(target => target.classList.contains('plan-ac-item'))
+    .subscribe(target => {
+      let value = target.querySelector('.pai-title').textContent;
+      let location = target.getAttribute('data-poi');
+
+      if (!planStartEle.getAttribute('data-poi')) {
+        planStartEle.value = value;
+        planStartEle.setAttribute('data-poi', location);
+        return;
+      }
+
+      if (!planEndEle.getAttribute('data-poi')) {
+        planEndEle.value = value;
+        planEndEle.setAttribute('data-poi', location);
+        return;
+      }
+
+    });
+
+  // 关闭
+  Rx.Observable
+    .fromEvent(planCloseBtn, 'click')
+    .subscribe(target => {
+      planWrapEle.classList.remove(CSS_SHOW);
+    });
+
+  // 交换起点和终点
+  Rx.Observable
+    .fromEvent(planExchangeBtn, 'click')
+    .subscribe(target => {
+      let startValue = planStartEle.value;
+      let startPoi = planStartEle.getAttribute('data-poi');
+      let endValue = planEndEle.value;
+      let endPoi = planEndEle.getAttribute('data-poi');
+
+      planStartEle.value = endValue;
+      planStartEle.setAttribute('data-poi', endPoi);
+      planEndEle.value = startValue;
+      planEndEle.setAttribute('data-poi', startPoi);
+    });
+
+  // 搜索
+  Rx.Observable
+    .fromEvent(planSearchBtn, 'click')
+    .subscribe(target => {
+      //http://restapi.amap.com/v3/direction/transit/integrated?origin=116.379028,39.865042&destination=116.427281,39.903719&city=%E5%8C%97%E4%BA%AC%E5%B8%82&strategy=0&nightflag=0&extensions=all&s=rsv3&key=fbd79c02b1207d950a9d040483ef40e5&callback=jsonp_325878_
+
+      let startPoi = planStartEle.getAttribute('data-poi');
+      let endPoi = planEndEle.getAttribute('data-poi');
+
+      AMap.service('AMap.Transfer',function(){
+        let transfer = new AMap.Transfer({
+          city: '宁波',
+          map: map,
+          panel: 'panel'
+        });
+
+        transfer.search([startPoi.split(',')[0], startPoi.split(',')[1]], [endPoi.split(',')[0], endPoi.split(',')[1]])
+
+      })
+
+
+
     });
 
 
