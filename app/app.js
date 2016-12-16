@@ -1,7 +1,8 @@
 import './style/home.scss';
 import Rx from 'rxjs/Rx';
 import Moment from 'moment';
-import Storage from './components/storage'
+import Storage from './components/storage';
+import Geolocation from './components/geolocation';
 
 const init = () => {
   let map = new AMap.Map('map',{
@@ -18,10 +19,12 @@ const init = () => {
   const alarmWrapEle = document.getElementById('alarmWrap');
   const allLineBtn = document.getElementById('allLineBtn');
   const placeNearbyEle = document.getElementById('placeNearby');
+  const placeToBtn = document.getElementById('placeToBtn');
+  const placeFromBtn = document.getElementById('placeFromBtn');
   const CSS_SHOW = 'show';
   const CSS_HIDE = 'hide';
   const CSS_ACTIVE = 'active';
-  let autoCompleteList = [];
+
 
   // autocomplete
   Rx.Observable
@@ -29,32 +32,11 @@ const init = () => {
     .debounceTime(250)
     .pluck('target', 'value')
     // .switchMap(value => fetch(`http://restapi.amap.com/v3/place/text?key=fbd79c02b1207d950a9d040483ef40e5&city=宁波&offset=10&s=rsv3&keywords=${value}`))
-    .subscribe(res => {
-      // if (res.ok) {
-      //   res.json().then(data => {
-      //     console.log(data)
-      //   })
-      // }
+    .subscribe(value => {
+      let url = `http://restapi.amap.com/v3/place/text?key=fbd79c02b1207d950a9d040483ef40e5&city=宁波&offset=10&s=rsv3&keywords=${value}`;
+      let autoCompleteList = [];
 
-      if (!!res) {
-        autoCompleteList = [
-          {
-            type: 'bus',
-            value: `${res}路`,
-            subValue: '浙江省宁波市'
-          },
-          {
-            type: 'place',
-            value: '创新128',
-            subValue: '浙江省宁波市'
-          },
-          {
-            type: 'place',
-            value: '宁波文化广场',
-            subValue: '浙江省宁波市'
-          }
-        ]
-      } else {
+      if (!value) {
         const results = document.querySelectorAll('.search-result');
 
         Array.from(results).forEach(result => {
@@ -63,9 +45,37 @@ const init = () => {
 
         autoCompleteList = [];
         map.clearMap();
+        renderAutoComplete(autoCompleteList);
+        return;
       }
 
-      renderAutoComplete(autoCompleteList);
+      fetch(url).then(res => {
+        if (res.ok) {
+          res.json().then(data => {
+            let pois = data.pois || [];
+
+            if (pois.length > 0) {
+              if (/\d+/g.test(value)) {
+                autoCompleteList.push({
+                  type: 'bus',
+                  value: `${value}路`,
+                  subValue: '浙江省宁波市'
+                })
+              }
+              pois.forEach(poi => {
+                autoCompleteList.push({
+                  type: 'place',
+                  value: poi.name,
+                  subValue: `${poi.cityname}${poi.adname}`
+                });
+              });
+            }
+
+            renderAutoComplete(autoCompleteList);
+
+          })
+        }
+      });
 
     });
 
@@ -92,6 +102,7 @@ const init = () => {
 
       map.clearMap();
       acListEle.classList.add(CSS_HIDE);
+      searchKey.value = key;
 
       searchDetail(type, key, map);
 
@@ -341,7 +352,7 @@ const init = () => {
               let stopPois = busLine.stops.map(stop => [stop.location.split(',')[0], stop.location.split(',')[1]]);
 
               linePath = drawLine(map, busLine.path);
-              stopMarkers = addMarkers(map, stopPois);
+              stopMarkers = addMarkers(map, stopPois, 'circle');
               map.setFitView(linePath);
 
             } else {
@@ -362,6 +373,35 @@ const init = () => {
       if (linePath && stopMarkers) {
         map.remove(stopMarkers.concat(linePath));
       }
+
+    });
+
+  // 地物详情-路线规划
+  const placeTo$ = Rx.Observable.fromEvent(placeToBtn, 'click');
+  const placeFrom$ = Rx.Observable.fromEvent(placeFromBtn, 'click');
+
+  Rx.Observable.merge(placeTo$, placeFrom$)
+    .pluck('target')
+    .subscribe(target => {
+      const placeNameEle = document.getElementById('placeName');
+      const planStartEle = document.getElementById('planStart');
+      const planEndEle = document.getElementById('planEnd');
+      let value = placeNameEle.textContent;
+      let poi = target.getAttribute('data-poi');
+
+      if (target.classList.contains('to')) {
+        planEndEle.value = value;
+        planEndEle.setAttribute('data-poi', poi);
+      }
+
+      if (target.classList.contains('from')) {
+        planStartEle.value = value;
+        planStartEle.setAttribute('data-poi', poi);
+      }
+
+      placeDetail.classList.add(CSS_HIDE);
+      planWrapEle.classList.add(CSS_SHOW);
+      map.clearMap();
 
     });
 
@@ -454,6 +494,14 @@ const init = () => {
   Rx.Observable
     .fromEvent(planCloseBtn, 'click')
     .subscribe(target => {
+      const panelEle = document.getElementById('panel');
+
+      planStartEle.value = '';
+      planStartEle.removeAttribute('data-poi');
+      planEndEle.value = '';
+      planEndEle.removeAttribute('data-poi');
+      planAcListEle.innerHTML = '';
+      panelEle.innerHTML = '';
       planWrapEle.classList.remove(CSS_SHOW);
     });
 
@@ -785,7 +833,7 @@ const renderBusDetail = (busLine, map) => {
   let stopMarkers = busLine.stops.map(stop => [stop.location.split(',')[0], stop.location.split(',')[1]]);
 
   let line = drawLine(map, busLine.path);
-  addMarkers(map, stopMarkers);
+  addMarkers(map, stopMarkers, 'circle');
 
   map.setFitView(line);
 }
@@ -906,22 +954,42 @@ const drawLine = (map, path) => {
   });
 }
 
-const addMarkers = (map, poiList, type) => {
+const addMarkers = (map, poiList, type = 'default') => {
   let markers = [];
+  let marker;
+  let option = {
+    map: map
+  };
+
+  switch (type) {
+    case 'circle':
+      option.content = '<div class="map-marker-circle"></div>';
+      option.offset = new AMap.Pixel(-3, -6);
+      break;
+    case 'bus':
+      option.content = '<div class="map-marker-icon bus"><i class="fa fa-bus"></i></div>';
+      option.offset = new AMap.Pixel(-5, -28);
+      option.animation = 'AMAP_ANIMATION_DROP';
+      break;
+    case 'subway':
+      option.content = '<div class="map-marker-icon subway"><i class="fa fa-subway"></i></div>';
+      option.offset = new AMap.Pixel(-5, -28);
+      option.animation = 'AMAP_ANIMATION_DROP';
+      break;
+    case 'bike':
+      option.content = '<div class="map-marker-icon bike"><i class="fa fa-bicycle"></i></div>';
+      option.offset = new AMap.Pixel(-5, -28);
+      option.animation = 'AMAP_ANIMATION_DROP';
+      break;
+  }
 
   poiList.forEach(poi => {
-    let marker = new AMap.Marker({
-      map: map,
-      position: poi,
-      content: '<div class="map-marker-circle"></div>',
-      offset: new AMap.Pixel(-3, -3)
-    });
-
+    marker = new AMap.Marker(option);
+    marker.setPosition(poi);
     markers.push(marker);
   });
 
   return markers;
-
 }
 
 const openAlarm = info => {
@@ -953,18 +1021,15 @@ const openAlarm = info => {
 const renderPlaceDetail = (place, map) => {
   const placeDetailEle = document.getElementById('placeDetail');
   const placeNameEle = document.getElementById('placeName');
+  const placeToBtn = document.getElementById('placeToBtn');
+  const placeFromBtn = document.getElementById('placeFromBtn');
   const placeNearbyEle = document.getElementById('placeNearby');
   const busStationListEle = document.getElementById('p_busStationList');
   const subwayStationListEle = document.getElementById('p_subwayStationList');
   const CSS_HIDE = 'hide';
-  const position = {
-    lng: place.location.split(',')[0],
-    lat: place.location.split(',')[1]
-  };
+  const position = str2poi(place.location);
   let busStopTmpl = '';
   let nearbyTmpl = '';
-
-  let url = `http://restapi.amap.com/v3/place/around?s=rsv3&location=${place.location}&key=fbd79c02b1207d950a9d040483ef40e5&radius=500&offset=5&page=1&city=宁波&keywords=公交站`;
 
   getNearBy(position)
     .subscribe(resArr => {
@@ -978,17 +1043,26 @@ const renderPlaceDetail = (place, map) => {
 
       Rx.Observable.forkJoin(promiseArr)
         .subscribe(dataArr => {
+          let tmpl;
+          let markers;
+
           console.log(dataArr)
           dataArr.forEach((data, index) => {
             switch(index) {
               case 0:
-                nearbyTmpl += getNearbyBusTmpl(data.pois);
+                ({ tmpl, markers } = getNearbyBus(data.pois));
+                nearbyTmpl += tmpl;
+                addMarkers(map, markers, 'bus');
                 break;
               case 1:
-                nearbyTmpl += getNearbySubwayTmpl(data.pois);
+                ({ tmpl, markers } = getNearbySubway(data.pois));
+                nearbyTmpl += tmpl;
+                addMarkers(map, markers, 'subway');
                 break;
               case 2:
-                nearbyTmpl += getNearbyBikeTmpl(data.pois);
+                ({ tmpl, markers } = getNearbyBike(data.list));
+                nearbyTmpl += tmpl;
+                addMarkers(map, markers, 'bike');
                 break;
               case 3:
                 //taxi
@@ -998,6 +1072,8 @@ const renderPlaceDetail = (place, map) => {
 
           placeNameEle.textContent = place.name;
           placeNameEle.setAttribute('title', place.name);
+          placeToBtn.setAttribute('data-poi', place.location);
+          placeFromBtn.setAttribute('data-poi', place.location);
           placeNearbyEle.innerHTML = nearbyTmpl;
           placeDetailEle.classList.remove(CSS_HIDE);
 
@@ -1010,26 +1086,39 @@ const renderPlaceDetail = (place, map) => {
     animation: 'AMAP_ANIMATION_DROP'
   });
 
-  map.setFitView(marker);
+  let circle = new AMap.Circle({
+    map: map,
+    center: [position.lng, position.lat],
+    strokeColor: "#004e79",
+    strokeOpacity: 0.2,
+    strokeWeight: 1,
+    fillColor: "#7cc8f3",
+    fillOpacity: 0.2,
+    radius: 500
+  });
 
-console.log(place)
-
+  map.setFitView(circle);
 }
 
 const getNearBy = poi => {
+  const location = Geolocation.mars2Gps(poi);
   const busUrl = `http://restapi.amap.com/v3/place/around?s=rsv3&location=${poi.lng},${poi.lat}&key=fbd79c02b1207d950a9d040483ef40e5&radius=500&offset=5&page=1&city=宁波&keywords=公交站`;
   const subwayUrl = `http://restapi.amap.com/v3/place/around?s=rsv3&location=${poi.lng},${poi.lat}&key=fbd79c02b1207d950a9d040483ef40e5&radius=500&offset=5&page=1&city=宁波&keywords=地铁站`;
+  const bikeUrl = `http://192.168.0.108:31111/bicycle/site_nearby?operId=0&location=${location.lng},${location.lat}&limit=5&radius=500`;
   const fetchBus$ = Rx.Observable.fromPromise(fetch(busUrl));
   const fetchSubway$ = Rx.Observable.fromPromise(fetch(subwayUrl));
+  const fetchBike$ = Rx.Observable.fromPromise(fetch(bikeUrl));
 
-  return Rx.Observable.forkJoin(fetchBus$, fetchSubway$);
+  return Rx.Observable.forkJoin(fetchBus$, fetchSubway$, fetchBike$);
 }
 
-const getNearbyBusTmpl = stopList => {
+const getNearbyBus = stopList => {
   let tmpl = '';
+  let poi;
+  let markers = [];
 
   if (stopList.length === 0) {
-    return tmpl;
+    return { tmpl, markers };
   }
 
   tmpl = `
@@ -1043,6 +1132,8 @@ const getNearbyBusTmpl = stopList => {
   `;
 
   stopList.forEach(stop => {
+    poi = str2poi(stop.location);
+    markers.push([poi.lng, poi.lat]);
 
     tmpl += `
       <li class="pb-station-item">
@@ -1073,14 +1164,16 @@ const getNearbyBusTmpl = stopList => {
     </div>
   `;
 
-  return tmpl;
+  return { tmpl, markers };
 }
 
-const getNearbySubwayTmpl = stopList => {
+const getNearbySubway = stopList => {
   let tmpl = '';
+  let poi;
+  let markers = [];
 
   if (stopList.length === 0) {
-    return tmpl;
+    return { tmpl, markers };
   }
 
   tmpl = `
@@ -1094,6 +1187,8 @@ const getNearbySubwayTmpl = stopList => {
   `;
 
   stopList.forEach(stop => {
+    poi = str2poi(stop.location);
+    markers.push([poi.lng, poi.lat]);
 
     tmpl += `
       <li class="pb-station-item">
@@ -1124,14 +1219,16 @@ const getNearbySubwayTmpl = stopList => {
     </div>
   `;
 
-  return tmpl;
+  return { tmpl, markers };
 }
 
-const getNearbyBikeTmpl = stopList => {
+const getNearbyBike = stopList => {
   let tmpl = '';
+  let poi;
+  let markers = [];
 
   if (stopList.length === 0) {
-    return tmpl;
+    return { tmpl, markers};
   }
 
   tmpl = `
@@ -1145,11 +1242,14 @@ const getNearbyBikeTmpl = stopList => {
   `;
 
   stopList.forEach(stop => {
+    poi = Geolocation.gps2Mars(str2poi(stop.locationText));
+    markers.push([poi.lng, poi.lat]);
+
     tmpl += `
-      <li class="pb-bike-item">
-        <span class="pbi-name">天一广场东门口</span>
-        <span class="pbi-dis">25米</span>
-        <span class="pbi-num">15/30</span>
+      <li class="pb-bike-item" data-poi="${poi.lng},${poi.lat}">
+        <span class="pbi-name"><i class="pbi-icon fa fa-map-marker"></i>${stop.stopName}</span>
+        <span class="pbi-dis">${stop.distance}米</span>
+        <span class="pbi-num">${stop.current4Get}/${stop.maxCapacity}</span>
       </li>
     `;
   });
@@ -1160,7 +1260,14 @@ const getNearbyBikeTmpl = stopList => {
     </div>
   `;
 
-  return tmpl;
+  return { tmpl, markers };
+}
+
+const str2poi = str => {
+  return {
+    lng: +str.split(',')[0],
+    lat: +str.split(',')[1]
+  }
 }
 
 init();

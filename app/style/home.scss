@@ -63,6 +63,45 @@ ul{
       border-radius: 5px;
       box-shadow: border-box;
     }
+
+    &-icon{
+      position: relative;
+      width: 18px;
+      height: 18px;
+      background: #fff;
+      line-height: 18px;
+      text-align: center;
+      font-size: 12px;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+
+      &:after{
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 0;
+        left: 4px;
+        top: 17px;
+        border: 8px solid transparent;
+        border-left-width: 5px;
+        border-right-width: 5px;
+        border-top-color: currentColor;
+      }
+
+      &.bus{
+
+        color: #fb9600;
+      }
+
+      &.subway{
+        color: #4bab17;
+      }
+
+      &.bike{
+        color: #f05e1c;
+      }
+
+    }
   }
 }
 
@@ -1107,7 +1146,7 @@ ul{
       }
 
       .pb-bike-list{
-        padding: 0 10px;
+        padding: 0 15px;
       }
 
       .pb-bike-item{
@@ -1118,6 +1157,10 @@ ul{
 
       .pbi-name{
         flex: 2;
+      }
+
+      .pbi-icon{
+        margin-right: 5px;
       }
 
       .pbi-dis{
