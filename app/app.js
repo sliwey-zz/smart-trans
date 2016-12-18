@@ -9,6 +9,13 @@ const init = () => {
     zoom: 11
   });
 
+  let infoWin = new AMap.InfoWindow({
+    isCustom: true,
+    offset: new AMap.Pixel(3, -38),
+    showShadow: true,
+    closeWhenClickMap: true
+  });
+
   const mapEle = document.getElementById('map');
   const searchKey = document.getElementById('searchKey');
   const searchBtn = document.getElementById('searchBtn');
@@ -24,7 +31,9 @@ const init = () => {
   const CSS_SHOW = 'show';
   const CSS_HIDE = 'hide';
   const CSS_ACTIVE = 'active';
+  let autoCompleteList = [];
 
+  cacheAllLines();
 
   // autocomplete
   Rx.Observable
@@ -34,7 +43,9 @@ const init = () => {
     // .switchMap(value => fetch(`http://restapi.amap.com/v3/place/text?key=fbd79c02b1207d950a9d040483ef40e5&city=宁波&offset=10&s=rsv3&keywords=${value}`))
     .subscribe(value => {
       let url = `http://restapi.amap.com/v3/place/text?key=fbd79c02b1207d950a9d040483ef40e5&city=宁波&offset=10&s=rsv3&keywords=${value}`;
-      let autoCompleteList = [];
+      const ALL_LINE_LIST = new Storage('ALL_LINE_LIST').get();
+
+      autoCompleteList = [];
 
       if (!value) {
         const results = document.querySelectorAll('.search-result');
@@ -43,7 +54,6 @@ const init = () => {
           result.classList.add(CSS_HIDE);
         });
 
-        autoCompleteList = [];
         map.clearMap();
         renderAutoComplete(autoCompleteList);
         return;
@@ -55,7 +65,7 @@ const init = () => {
             let pois = data.pois || [];
 
             if (pois.length > 0) {
-              if (/\d+/g.test(value)) {
+              if (ALL_LINE_LIST.indexOf(value) > -1) {
                 autoCompleteList.push({
                   type: 'bus',
                   value: `${value}路`,
@@ -348,8 +358,14 @@ const init = () => {
               wrapEle.innerHTML = tmpl;
               wrapEle.classList.add(CSS_SHOW);
 
+              let stopPois = busLine.stops.map(stop => {
+                let poi = str2poi(stop.location);
 
-              let stopPois = busLine.stops.map(stop => [stop.location.split(',')[0], stop.location.split(',')[1]]);
+                return {
+                  name: stop.name,
+                  poi: [poi.lng, poi.lat]
+                }
+              });
 
               linePath = drawLine(map, busLine.path);
               stopMarkers = addMarkers(map, stopPois, 'circle');
@@ -374,6 +390,54 @@ const init = () => {
         map.remove(stopMarkers.concat(linePath));
       }
 
+    });
+
+  // 地物详情－地图infoWin显示
+  Rx.Observable
+    .fromEvent(placeNearbyEle, 'click')
+    .pluck('target')
+    .filter(target => target.classList.contains('psi-title') || target.classList.contains('pb-bike-item'))
+    .subscribe(target => {
+      let poi = str2poi(target.getAttribute('data-poi'));
+      let name = target.getAttribute('data-name');
+      let info = `
+        <div class="map-info-wrap">
+          <div class="map-info-title">${name}</div>
+          <span class="map-info-close fa fa-times"></span>
+        </div>
+      `;
+
+      infoWin.setContent(info);
+      infoWin.open(map, [poi.lng, poi.lat]);
+      map.setZoomAndCenter(16, [poi.lng, poi.lat])
+
+    });
+
+  // 地物详情－地图infoWin关闭
+  Rx.Observable
+    .fromEvent(mapEle, 'click')
+    .pluck('target')
+    .filter(target => target.classList.contains('map-info-close'))
+    .subscribe(target => {
+      infoWin.close();
+    });
+
+  Rx.Observable
+    .fromEvent(mapEle, 'click')
+    .pluck('target')
+    .filter(target => target.classList.contains('map-marker-icon'))
+    .subscribe(target => {
+      let poi = str2poi(target.getAttribute('data-poi'));
+      let name = target.getAttribute('data-name');
+      let info = `
+        <div class="map-info-wrap">
+          <div class="map-info-title">${name}</div>
+          <span class="map-info-close fa fa-times"></span>
+        </div>
+      `;
+
+      infoWin.setContent(info);
+      infoWin.open(map, [poi.lng, poi.lat]);
     });
 
   // 地物详情-路线规划
@@ -539,12 +603,7 @@ const init = () => {
         transfer.search([startPoi.split(',')[0], startPoi.split(',')[1]], [endPoi.split(',')[0], endPoi.split(',')[1]])
 
       })
-
-
-
     });
-
-
 }
 
 const renderAutoComplete = list => {
@@ -704,12 +763,15 @@ const searchDetail = (type, key, map) => {
           storage.set(busLine);
           renderBusDetail(busLine.forward, map);
 
-          if (data.count > 2) {
-            const allLineBtn = document.getElementById('allLineBtn');
+          let count = data.count % 2 === 0 ? data.count : data.count - 1;
+          const allLineBtn = document.getElementById('allLineBtn');
 
+          if (count > 2) {
             allLineBtn.setAttribute('data-key', key);
-            allLineBtn.setAttribute('data-count', data.count);
+            allLineBtn.setAttribute('data-count', count);
             allLineBtn.classList.add('show');
+          } else {
+            allLineBtn.classList.remove('show');
           }
 
         })
@@ -830,7 +892,14 @@ const renderBusDetail = (busLine, map) => {
 
   busDetailEle.classList.remove(CSS_HIDE);
 
-  let stopMarkers = busLine.stops.map(stop => [stop.location.split(',')[0], stop.location.split(',')[1]]);
+  let stopMarkers = busLine.stops.map(stop => {
+    let poi = str2poi(stop.location);
+
+    return {
+      name: stop.name,
+      poi: [poi.lng, poi.lat]
+    }
+  });
 
   let line = drawLine(map, busLine.path);
   addMarkers(map, stopMarkers, 'circle');
@@ -954,39 +1023,86 @@ const drawLine = (map, path) => {
   });
 }
 
-const addMarkers = (map, poiList, type = 'default') => {
+const addMarkers = (map, markerList, type = 'default') => {
   let markers = [];
   let marker;
   let option = {
     map: map
   };
 
-  switch (type) {
-    case 'circle':
-      option.content = '<div class="map-marker-circle"></div>';
-      option.offset = new AMap.Pixel(-3, -6);
-      break;
-    case 'bus':
-      option.content = '<div class="map-marker-icon bus"><i class="fa fa-bus"></i></div>';
-      option.offset = new AMap.Pixel(-5, -28);
-      option.animation = 'AMAP_ANIMATION_DROP';
-      break;
-    case 'subway':
-      option.content = '<div class="map-marker-icon subway"><i class="fa fa-subway"></i></div>';
-      option.offset = new AMap.Pixel(-5, -28);
-      option.animation = 'AMAP_ANIMATION_DROP';
-      break;
-    case 'bike':
-      option.content = '<div class="map-marker-icon bike"><i class="fa fa-bicycle"></i></div>';
-      option.offset = new AMap.Pixel(-5, -28);
-      option.animation = 'AMAP_ANIMATION_DROP';
-      break;
-  }
+  // switch (type) {
+  //   case 'circle':
+  //     option.content = '<div class="map-marker-circle"></div>';
+  //     option.offset = new AMap.Pixel(-3, -6);
+  //     break;
+  //   case 'bus':
+  //     option.content = '<div class="map-marker-icon bus"><i class="fa fa-bus"></i></div>';
+  //     option.offset = new AMap.Pixel(-5, -28);
+  //     option.animation = 'AMAP_ANIMATION_DROP';
+  //     break;
+  //   case 'subway':
+  //     option.content = '<div class="map-marker-icon subway"><i class="fa fa-subway"></i></div>';
+  //     option.offset = new AMap.Pixel(-5, -28);
+  //     option.animation = 'AMAP_ANIMATION_DROP';
+  //     break;
+  //   case 'bike':
+  //     option.content = '<div class="map-marker-icon bike"><i class="fa fa-bicycle"></i></div>';
+  //     option.offset = new AMap.Pixel(-5, -28);
+  //     option.animation = 'AMAP_ANIMATION_DROP';
+  //     break;
+  //   case 'taxi':
+  //     option.content = '<div class="map-marker-icon taxi"><i class="fa fa-taxi"></i></div>';
+  //     option.offset = new AMap.Pixel(-5, -28);
+  //     option.animation = 'AMAP_ANIMATION_DROP';
+  //     break;
+  //   case 'car':
+  //     option.content = '<div class="map-marker-icon car"><i class="fa fa-car"></i></div>';
+  //     option.offset = new AMap.Pixel(-5, -28);
+  //     option.animation = 'AMAP_ANIMATION_DROP';
+  //     break;
+  // }
 
-  poiList.forEach(poi => {
-    marker = new AMap.Marker(option);
-    marker.setPosition(poi);
-    markers.push(marker);
+  markerList.forEach(marker => {
+
+    switch (type) {
+      case 'circle':
+        option.content = `<div class="map-marker-circle" data-name="${marker.name}" data-poi="${marker.poi.join(',')}"></div>`;
+        option.offset = new AMap.Pixel(-3, -6);
+        option.position = marker.poi;
+        break;
+      case 'bus':
+        option.content = `<div class="map-marker-icon bus" data-name="${marker.name}" data-poi="${marker.poi.join(',')}"><i class="fa fa-bus"></i></div>`;
+        option.offset = new AMap.Pixel(-5, -28);
+        option.animation = 'AMAP_ANIMATION_DROP';
+        option.position = marker.poi;
+        break;
+      case 'subway':
+        option.content = `<div class="map-marker-icon subway" data-name="${marker.name}" data-poi="${marker.poi.join(',')}"><i class="fa fa-subway"></i></div>`;
+        option.offset = new AMap.Pixel(-5, -28);
+        option.animation = 'AMAP_ANIMATION_DROP';
+        option.position = marker.poi;
+        break;
+      case 'bike':
+        option.content = `<div class="map-marker-icon bike" data-name="${marker.name}" data-poi="${marker.poi.join(',')}"><i class="fa fa-bicycle"></i></div>`;
+        option.offset = new AMap.Pixel(-5, -28);
+        option.animation = 'AMAP_ANIMATION_DROP';
+        option.position = marker.poi;
+        break;
+      case 'taxi':
+        option.content = `<div class="map-marker-icon taxi" data-name="${marker.name}" data-poi="${marker.poi.join(',')}"><i class="fa fa-taxi"></i></div>`;
+        option.offset = new AMap.Pixel(-5, -28);
+        option.animation = 'AMAP_ANIMATION_DROP';
+        option.position = marker.poi;
+        break;
+      case 'car':
+        option.content = `<div class="map-marker-icon car" data-name="${marker.name}" data-poi="${marker.poi.join(',')}"><i class="fa fa-car"></i></div>`;
+        option.offset = new AMap.Pixel(-5, -28);
+        option.animation = 'AMAP_ANIMATION_DROP';
+        option.position = marker.poi;
+        break;
+    }
+
+    markers.push(new AMap.Marker(option));
   });
 
   return markers;
@@ -1045,6 +1161,8 @@ const renderPlaceDetail = (place, map) => {
         .subscribe(dataArr => {
           let tmpl;
           let markers;
+          let taxiMarkers;
+          let carMarkers;
 
           console.log(dataArr)
           dataArr.forEach((data, index) => {
@@ -1065,7 +1183,10 @@ const renderPlaceDetail = (place, map) => {
                 addMarkers(map, markers, 'bike');
                 break;
               case 3:
-                //taxi
+                ({ tmpl, taxiMarkers, carMarkers} = getNearbyCar(data.list));
+                nearbyTmpl += tmpl;
+                addMarkers(map, taxiMarkers, 'taxi');
+                addMarkers(map, carMarkers, 'car');
                 break;
             }
           });
@@ -1104,18 +1225,21 @@ const getNearBy = poi => {
   const location = Geolocation.mars2Gps(poi);
   const busUrl = `http://restapi.amap.com/v3/place/around?s=rsv3&location=${poi.lng},${poi.lat}&key=fbd79c02b1207d950a9d040483ef40e5&radius=500&offset=5&page=1&city=宁波&keywords=公交站`;
   const subwayUrl = `http://restapi.amap.com/v3/place/around?s=rsv3&location=${poi.lng},${poi.lat}&key=fbd79c02b1207d950a9d040483ef40e5&radius=500&offset=5&page=1&city=宁波&keywords=地铁站`;
-  const bikeUrl = `http://192.168.0.108:31111/bicycle/site_nearby?operId=0&location=${location.lng},${location.lat}&limit=5&radius=500`;
+  const bikeUrl = `http://122.227.209.115:8008/bicycle/site_nearby?operId=0&location=${location.lng},${location.lat}&limit=5&radius=500`;
+  const carUrl = `http://122.227.209.115:8008/bicycle/site_nearby?operId=0&location=${location.lng},${location.lat}&limit=10&radius=500`;
   const fetchBus$ = Rx.Observable.fromPromise(fetch(busUrl));
   const fetchSubway$ = Rx.Observable.fromPromise(fetch(subwayUrl));
   const fetchBike$ = Rx.Observable.fromPromise(fetch(bikeUrl));
+  const fetchCar$ = Rx.Observable.fromPromise(fetch(carUrl));
 
-  return Rx.Observable.forkJoin(fetchBus$, fetchSubway$, fetchBike$);
+  return Rx.Observable.forkJoin(fetchBus$, fetchSubway$, fetchBike$, fetchCar$);
 }
 
 const getNearbyBus = stopList => {
   let tmpl = '';
   let poi;
   let markers = [];
+  let name;
 
   if (stopList.length === 0) {
     return { tmpl, markers };
@@ -1133,12 +1257,17 @@ const getNearbyBus = stopList => {
 
   stopList.forEach(stop => {
     poi = str2poi(stop.location);
-    markers.push([poi.lng, poi.lat]);
+    name = stop.name.replace('(公交站)', '');
+
+    markers.push({
+      name: name,
+      poi: [poi.lng, poi.lat]
+    });
 
     tmpl += `
       <li class="pb-station-item">
-        <p class="psi-title">
-          <span class="psi-name"><i class="psi-icon fa fa-caret-right"></i>${stop.name}</span>
+        <p class="psi-title" data-poi="${stop.location}" data-name="${name}">
+          <span class="psi-name"><i class="psi-icon fa fa-caret-right"></i>${name}</span>
           <span class="psi-dis">${stop.distance}米</span>
         </p>
         <div class="psi-content">
@@ -1171,6 +1300,7 @@ const getNearbySubway = stopList => {
   let tmpl = '';
   let poi;
   let markers = [];
+  let name;
 
   if (stopList.length === 0) {
     return { tmpl, markers };
@@ -1188,12 +1318,17 @@ const getNearbySubway = stopList => {
 
   stopList.forEach(stop => {
     poi = str2poi(stop.location);
-    markers.push([poi.lng, poi.lat]);
+    name = stop.name.replace('(地铁站)', '');
+
+    markers.push({
+      name: name,
+      poi: [poi.lng, poi.lat]
+    });
 
     tmpl += `
       <li class="pb-station-item">
-        <p class="psi-title">
-          <span class="psi-name"><i class="psi-icon fa fa-caret-right"></i>${stop.name}</span>
+        <p class="psi-title" data-poi="${stop.location}" data-name="${name}">
+          <span class="psi-name"><i class="psi-icon fa fa-caret-right"></i>${name}</span>
           <span class="psi-dis">${stop.distance}米</span>
         </p>
         <div class="psi-content">
@@ -1228,7 +1363,7 @@ const getNearbyBike = stopList => {
   let markers = [];
 
   if (stopList.length === 0) {
-    return { tmpl, markers};
+    return { tmpl, markers };
   }
 
   tmpl = `
@@ -1243,10 +1378,14 @@ const getNearbyBike = stopList => {
 
   stopList.forEach(stop => {
     poi = Geolocation.gps2Mars(str2poi(stop.locationText));
-    markers.push([poi.lng, poi.lat]);
+
+    markers.push({
+      name: stop.stopName,
+      poi: [poi.lng, poi.lat]
+    });
 
     tmpl += `
-      <li class="pb-bike-item" data-poi="${poi.lng},${poi.lat}">
+      <li class="pb-bike-item" data-poi="${poi.lng},${poi.lat}" data-name="${stop.stopName}">
         <span class="pbi-name"><i class="pbi-icon fa fa-map-marker"></i>${stop.stopName}</span>
         <span class="pbi-dis">${stop.distance}米</span>
         <span class="pbi-num">${stop.current4Get}/${stop.maxCapacity}</span>
@@ -1263,11 +1402,92 @@ const getNearbyBike = stopList => {
   return { tmpl, markers };
 }
 
+const getNearbyCar = stopList => {
+  let tmpl = '';
+  let poi;
+  let taxiMarkers = [];
+  let carMarkers = [];
+
+  if (stopList.length <= 5) {
+    return { tmpl, taxiMarkers, carMarkers };
+  }
+
+  stopList.forEach((stop, index) => {
+    if (index > 5) {
+      poi = Geolocation.gps2Mars(str2poi(stop.locationText));
+
+      if (index % 2 === 0) {
+        taxiMarkers.push({
+          name: '浙BT1234',
+          poi: [poi.lng, poi.lat]
+        });
+      } else {
+        carMarkers.push({
+          name: '浙B45678',
+          poi: [poi.lng, poi.lat]
+        });
+      }
+    }
+
+  });
+
+  tmpl = `
+    <div class="pb-block">
+      <div class="pb-title">
+        <i class="fa fa-car"></i>
+        <span class="pb-name">召车</span>
+      </div>
+      <div class="pb-content">
+        <div class="pb-car-block">
+          <div class="pcb-item">
+            <span class="pcb-label"><i class="pcb-icon fa fa-taxi"></i>出租车</span>
+            <span class="pcb-value">${taxiMarkers.length}</span>
+          </div>
+          <div class="pcb-item">
+            <span class="pcb-label"><i class="pcb-icon fa fa-car"></i>网约车</span>
+            <span class="pcb-value">${carMarkers.length}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  return { tmpl, taxiMarkers, carMarkers };
+}
+
 const str2poi = str => {
   return {
     lng: +str.split(',')[0],
     lat: +str.split(',')[1]
   }
+}
+
+const cacheAllLines = () => {
+  let url = 'http://122.227.209.115:8008/bus/lines?operId=0&time=1';
+
+  fetch(url).then(res => {
+    if (res.ok) {
+      res.json().then(data => {
+        let dataList = data.list || [];
+        let lineSet = new Set();
+        let storage = new Storage('ALL_LINE_LIST');
+        let lineList = [];
+
+        dataList.map(data => data.replace(/[\u4e00-\u9fa5\s（）]+/g, '').replace(/\-$/, ''))
+                .filter(value => !!value)
+                .forEach(value => {
+                  lineSet.add(value);
+                });
+
+        for (let item of lineSet) {
+          lineList.push(item);
+        }
+
+        storage.set(lineList);
+
+      });
+    }
+  })
 }
 
 init();
