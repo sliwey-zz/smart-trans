@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+  <meta charset="utf-8">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <title>Smart Transportation</title>
+  <script type="text/javascript" src="http://webapi.amap.com/maps?v=1.3&key=fbd79c02b1207d950a9d040483ef40e5"></script>
+</head>
+<body>
+  <div class="wrap">
+    <div id="map" class="map"></div>
+    <div class="left-panel">
+      <div class="serach">
+        <div class="search-box">
+          <input id="searchKey" class="search-input" type="text" placeholder="搜索地点、公交、路线" />
+          <button id="searchBtn" class="search-btn"><i class="fa fa-search"></i></button>
+        </div>
+        <ul id="acList" class="sr-list hide">
+          <!--待插入-->
+        </ul>
+        <div id="busList" class="search-result hide">
+          <ul id="lineList" class="bus-list">
+            <!--待插入-->
+          </ul>
+        </div>
+        <div id="busDetail" class="search-result hide">
+          <div class="bus-detail">
+            <div id="bdHead" class="bd-head">
+              <!--待插入-->
+            </div>
+            <div class="bd-body">
+              <ul id="bdLabel" class="bd-label-list">
+                <!--待插入-->
+              </ul>
+              <div class="bd-block">
+                <div class="bb-title">
+                  <span class="bt-name">主要站点</span>
+                  <span class="bt-op fa fa-plus js-show-all" title="展开"></span>
+                </div>
+                <div class="bb-content">
+                  <ul id="mainStop" class="bc-main-list">
+                    <!--待插入-->
+                  </ul>
+                </div>
+              </div>
+              <div class="bd-block">
+                <div class="bb-title">
+                  <span id="stopName" class="bt-name"></span>
+                  <span class="bt-op fa fa-bell js-alarm" title="到站提醒"></span>
+                </div>
+                <div id="stopContent" class="bb-content">
+                  <!--待插入-->
+                </div>
+              </div>
+              <div class="bd-block">
+                <button id="allLineBtn" class="bb-btn" type="button">查看全部相关线路</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="busStop" class="search-result hide">
+          <div class="bus-stops">
+            <div class="stop-title">
+              <span class="st-name">全部站点</span>
+              <span class="st-op fa fa-close js-close" title="关闭"></span>
+            </div>
+            <ul id="busStopList" class="stop-list">
+              <!--待插入-->
+            </ul>
+          </div>
+        </div>
+        <div id="placeDetail" class="search-result hide">
+          <div class="place-detail">
+            <div class="pd-head">
+              <div class="pd-head-left">
+                <p id="placeName" class="ph-name"></p>
+              </div>
+              <div class="pd-head-right">
+                <button id="placeToBtn" class="ph-btn to" type="button">到这去</button>
+                <button id="placeFromBtn" class="ph-btn from" type="button">从这出发</button>
+              </div>
+            </div>
+            <div id="placeNearby" class="pd-body">
+              <!--<div class="pb-block">
+                <div class="pb-title">
+                  <i class="fa fa-bus"></i>
+                  <span class="pb-name">公交站</span>
+                </div>
+                <div class="pb-content">
+                  <ul class="pb-station-list">
+                    <li class="pb-station-item active">
+                      <p class="psi-title">
+                        <span class="psi-name"><i class="psi-icon fa fa-caret-right"></i>国际航运中心</span>
+                        <span class="psi-dis">101米</span>
+                      </p>
+                      <div class="psi-content">
+                        <ul class="psi-line-list">
+                          <li class="psi-line-item active">14路</li>
+                          <li class="psi-line-item">30路</li>
+                          <li class="psi-line-item">155路</li>
+                          <li class="psi-line-item">168路</li>
+                          <li class="psi-line-item">168路</li>
+                          <li class="psi-line-item">168路</li>
+                          <li class="psi-line-item">168路</li>
+                          <li class="psi-line-item">168路</li>
+                          <li class="psi-line-item">168路</li>
+                        </ul>
+                        <div class="psi-line-detail">
+                          <div class="psi-detail-title">
+                            <span class="psi-detail-name">14路</span>
+                            <span class="psi-detail-right">
+                              <span class="dr-item">拥堵&emsp;5</span>
+                              <span class="dr-item">拥挤&emsp;3</span>
+                              <span class="dr-item">准点率&emsp;92%</span>
+                            </span>
+                          </div>
+                          <div class="psi-detail-content">
+                            <span class="psi-line-stop start">公交会展路站</span>
+                            <span class="psi-line-arrow"></span>
+                            <span class="psi-line-stop end">第九医院</span>
+                            <span class="psi-line-time forward">11:20</span>
+                            <span class="psi-line-time reverse">11:25</span>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>-->
+              <!--<div class="pb-block">
+                <div class="pb-title">
+                  <i class="fa fa-subway"></i>
+                  <span class="pb-name">地铁站</span>
+                </div>
+                <div class="pb-content">
+                  <ul class="pb-station-list">
+                    <li class="pb-station-item">
+                      <p class="psi-title active">
+                        <span class="psi-name"><i class="psi-icon fa fa-caret-right"></i>海晏北路</span>
+                        <span class="psi-dis">789米</span>
+                      </p>
+                      <div class="psi-content active">
+                        <ul class="psi-line-list">
+                          <li class="psi-line-item active">一号线</li>
+                        </ul>
+                        <div class="psi-line-detail">
+                          <div class="psi-detail-content">
+                            <span class="psi-line-stop">公交会展路站</span>
+                            <span class="psi-line-arrow"></span>
+                            <span class="psi-line-stop">第九医院</span>
+                            <span class="psi-line-time forward">11:20</span>
+                            <span class="psi-line-time reverse">11:25</span>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>-->
+              <!--<div class="pb-block">
+                <div class="pb-title">
+                  <i class="fa fa-bicycle"></i>
+                  <span class="pb-name">公共自行车点</span>
+                </div>
+                <div class="pb-content">
+                  <ul class="pb-bike-list">
+                    <li class="pb-bike-item">
+                      <span class="pbi-name"><i class="pbi-icon fa fa-map-marker"></i>天一广场东门口</span>
+                      <span class="pbi-dis">25米</span>
+                      <span class="pbi-num">15/30</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>-->
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="planWrap" class="plan-wrap">
+        <div class="plan-head">
+          <span id="planCloseBtn" class="plan-close plan-icon fa fa-close"></span>
+          <div class="plan-form">
+            <p class="pf-row">
+              <label for="planStart" class="pf-label">起</label>
+              <input id="planStart" type="text" class="pf-input" placeholder="请输入起点">
+            </p>
+            <p class="pf-row">
+              <label for="planEnd" class="pf-label">终</label>
+              <input id="planEnd" type="text" class="pf-input" placeholder="请输入终点">
+            </p>
+            <span id="planExchangeBtn" class="pf-exchange plan-icon fa fa-exchange"></span>
+          </div>
+          <span id="planSearchBtn" class="plan-search plan-icon fa fa-search"></span>
+        </div>
+        <div class="plan-body">
+          <ul id="planAcList" class="plan-ac-list">
+            <!--待插入-->
+          </ul>
+          <div id="panel" class="plan-panel">
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="alarmWrap" class="pop-wrap">
+      <div class="pop-win">
+        <div class="pop-title">
+          <span class="pt-name">到站提醒</span>
+          <span class="pt-op fa fa-close js-alarm-close"></span>
+        </div>
+        <div class="pop-content">
+          <div id="alarmInfo" class="alarm-name">
+            <!--待插入-->
+          </div>
+          <div class="alarm-time">
+            <input id="alarmStart" class="at-time at-start" maxlength="4" type="text" />
+            <span>-</span>
+            <input id="alarmEnd" class="at-time at-end" maxlength="4" type="text" />
+          </div>
+          <div class="alarm-type">
+            <p class="at-row">
+              <input class="at-input" type="text" maxlength="11" placeholder="请输入手机号码" />
+            </p>
+            <p class="at-row">
+              <button id="alarmBtn" class="at-btn" type="button">确认</button>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<script type="text/javascript" src="bundle.js"></script></body>
+</html>

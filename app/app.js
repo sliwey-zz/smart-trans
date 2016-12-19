@@ -24,6 +24,7 @@ const init = () => {
   const busDetailEle = document.getElementById('busDetail');
   const busStopEle = document.getElementById('busStop');
   const alarmWrapEle = document.getElementById('alarmWrap');
+  const alarmBtn = document.getElementById('alarmBtn');
   const allLineBtn = document.getElementById('allLineBtn');
   const placeNearbyEle = document.getElementById('placeNearby');
   const placeToBtn = document.getElementById('placeToBtn');
@@ -38,6 +39,7 @@ const init = () => {
   // autocomplete
   Rx.Observable
     .fromEvent(searchKey, 'keyup')
+    .filter(event => event.keyCode !== 13)
     .debounceTime(250)
     .pluck('target', 'value')
     // .switchMap(value => fetch(`http://restapi.amap.com/v3/place/text?key=fbd79c02b1207d950a9d040483ef40e5&city=宁波&offset=10&s=rsv3&keywords=${value}`))
@@ -116,6 +118,30 @@ const init = () => {
 
       searchDetail(type, key, map);
 
+    });
+
+  // 点击搜索按钮
+  Rx.Observable
+    .fromEvent(searchBtn, 'click')
+    .subscribe(target => {
+      const item = acListEle.querySelector('.sr-item');
+
+      if (item) {
+        item.click();
+      }
+
+    });
+
+  Rx.Observable
+    .fromEvent(searchKey, 'keyup')
+    .pluck('keyCode')
+    .filter(keyCode => keyCode === 13)
+    .subscribe(() => {
+      const item = acListEle.querySelector('.sr-item');
+
+      if (item) {
+        item.click();
+      }
     });
 
   // 查看全部站点
@@ -225,6 +251,12 @@ const init = () => {
     .fromEvent(alarmWrapEle, 'click')
     .pluck('target')
     .filter(target => target.classList.contains('js-alarm-close'))
+    .subscribe(target => {
+      alarmWrapEle.classList.remove(CSS_SHOW);
+    });
+
+  Rx.Observable
+    .fromEvent(alarmBtn, 'click')
     .subscribe(target => {
       alarmWrapEle.classList.remove(CSS_SHOW);
     });
