@@ -34,7 +34,7 @@ const init = () => {
   const CSS_ACTIVE = 'active';
   let autoCompleteList = [];
 
-  cacheAllLines();
+  // cacheAllLines();
 
   // autocomplete
   Rx.Observable
