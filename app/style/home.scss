@@ -47,11 +47,58 @@ ul{
   position: absolute;
   width: 100%;
   height: 100%;
+  display: flex;
+}
+
+.aside{
+
+  &-wrap{
+    flex: 0 0 100px;
+    background: $color-primary;
+  }
+
+  &-list{
+
+  }
+
+  &-item{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: .3s;
+
+    &.active,
+    &:hover{
+      background: #096892;
+    }
+  }
+
+  &-block{
+    text-align: center;
+    pointer-events: none;
+  }
+
+  &-icon{
+    margin-bottom: 3px;
+    font-size: 30px;
+  }
+
+  &-item{
+    height: 100px;
+    color: #fff;
+  }
+
 }
 
 .map{
   width: 100%;
   height: 100%;
+
+  &-wrap{
+    position: relative;
+    flex: 1;
+  }
 
   &-marker{
 
@@ -286,11 +333,6 @@ ul{
     display: flex;
     margin-bottom: 10px;
 
-    // &:hover{
-    //   .bi-abs {
-    //     border-color: $color-primary;
-    //   }
-    // }
 
     .bi-name{
       display: flex;

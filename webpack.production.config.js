@@ -37,11 +37,11 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        loader: ExtractTextWebpackPlugin.extract("style-loader", "css-loader")
+        loader: ExtractTextWebpackPlugin.extract("style", "css")
       },
       {
         test: /\.scss$/,
-        loaders: ['style', 'css', 'postcss', 'sass'],
+        loader: ExtractTextWebpackPlugin.extract("style", "css!postcss!sass"),
         include: APP_PATH
       },
       {
