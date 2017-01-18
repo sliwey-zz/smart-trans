@@ -4,19 +4,84 @@ import Moment from 'moment';
 import Storage from './components/storage';
 import Geolocation from './components/geolocation';
 
-const init = () => {
-  let map = new AMap.Map('map',{
-    zoom: 11
-  });
+const map = new AMap.Map('map',{
+  zoom: 11
+});
+const infoWin = new AMap.InfoWindow({
+  isCustom: true,
+  offset: new AMap.Pixel(3, -38),
+  showShadow: true,
+  closeWhenClickMap: true
+});
 
-  let infoWin = new AMap.InfoWindow({
-    isCustom: true,
-    offset: new AMap.Pixel(3, -38),
-    showShadow: true,
-    closeWhenClickMap: true
-  });
+const mapEle = document.getElementById('map');
 
-  const mapEle = document.getElementById('map');
+const MODE_TYPE_BUS = 'bus';
+const MODE_TYPE_BIKE = 'bike';
+const MODE_TYPE_ROUTE = 'route';
+const MODE_TYPE_MULT = 'mult';
+
+let autoCompleteList = [];
+
+function changeMode(type) {
+  switch (type) {
+    case MODE_TYPE_BUS:
+      initBus();
+      break;
+    case MODE_TYPE_BIKE:
+      initBike();
+      break;
+    case MODE_TYPE_ROUTE:
+      initRoute();
+      break;
+    case MODE_TYPE_MULT:
+      initMult();
+      break;
+  }
+}
+
+function initBus() {
+  const searchKey = document.getElementById('searchKey');
+  const searchBtn = document.getElementById('searchBtn');
+  const acListEle = document.getElementById('acList');
+  const CSS_HIDE = 'hide';
+
+  searchKey.setAttribute('placeholder', '搜索公交线路');
+
+  // autocomplete
+  Rx.Observable
+    .fromEvent(searchKey, 'keyup')
+    .filter(event => event.keyCode !== 13)
+    .debounceTime(250)
+    .pluck('target', 'value')
+    .subscribe(value => {
+      const ALL_LINE_LIST = new Storage('ALL_LINE_LIST').get();
+
+      autoCompleteList = [];
+
+      if (!value) {
+        const results = document.querySelectorAll('.search-result');
+
+        Array.from(results).forEach(result => {
+          result.classList.add(CSS_HIDE);
+        });
+
+        map.clearMap();
+
+      } else if (ALL_LINE_LIST.indexOf(value) > -1) {
+        autoCompleteList.push({
+          type: 'bus',
+          value: `${value}路`,
+          subValue: ''
+        })
+      }
+
+      renderAutoComplete(autoCompleteList);
+    });
+
+}
+
+function initMult() {
   const searchKey = document.getElementById('searchKey');
   const searchBtn = document.getElementById('searchBtn');
   const acListEle = document.getElementById('acList');
@@ -32,9 +97,10 @@ const init = () => {
   const CSS_SHOW = 'show';
   const CSS_HIDE = 'hide';
   const CSS_ACTIVE = 'active';
-  let autoCompleteList = [];
 
   // cacheAllLines();
+
+  searchKey.setAttribute('placeholder', '搜索地点、公交、路线');
 
   // autocomplete
   Rx.Observable
@@ -71,7 +137,7 @@ const init = () => {
                 autoCompleteList.push({
                   type: 'bus',
                   value: `${value}路`,
-                  subValue: '浙江省宁波市'
+                  subValue: ''
                 })
               }
               pois.forEach(poi => {
@@ -89,14 +155,6 @@ const init = () => {
         }
       });
 
-    });
-
-  // 点击地图隐藏autocomplete
-  Rx.Observable
-    .fromEvent(mapEle, 'click')
-    .subscribe(() => {
-      autoCompleteList = [];
-      renderAutoComplete(autoCompleteList);
     });
 
   // 查看结果
@@ -638,7 +696,40 @@ const init = () => {
     });
 }
 
-const renderAutoComplete = list => {
+function init() {
+  const asideListEle = document.querySelector('.aside-list');
+
+  Rx.Observable
+    .fromEvent(asideListEle, 'click')
+    .pluck('target')
+    .filter(target => target.classList.contains('aside-item'))
+    .subscribe(target => {
+      const items = asideListEle.querySelectorAll('.aside-item');
+      const type = target.getAttribute('data-type');
+
+      Array.from(items).forEach(item => {
+        item.classList.remove('active');
+      });
+
+      target.classList.add('active');
+
+      changeMode(type);
+
+    });
+
+  // 点击地图隐藏autocomplete
+  Rx.Observable
+    .fromEvent(mapEle, 'click')
+    .subscribe(() => {
+      autoCompleteList = [];
+      renderAutoComplete(autoCompleteList);
+    });
+
+  changeMode(MODE_TYPE_BUS);
+
+}
+
+function renderAutoComplete(list) {
   const listEle = document.getElementById('acList');
   const CSS_HIDE = 'hide';
   let items = list || [];
@@ -666,7 +757,7 @@ const renderAutoComplete = list => {
 
 }
 
-const getIconName = type => {
+function getIconName(type) {
   let name = '';
 
   switch (type) {
@@ -683,7 +774,7 @@ const getIconName = type => {
   return name;
 }
 
-const formatTime = time => {
+function formatTime(time) {
   if (time.length !== 4) {
     return '';
   } else {
@@ -691,7 +782,7 @@ const formatTime = time => {
   }
 }
 
-const searchLines = (key, count) => {
+function searchLines(key, count) {
   let url = `http://restapi.amap.com/v3/bus/linename?s=rsv3&extensions=all&key=fbd79c02b1207d950a9d040483ef40e5&pageIndex=1&city=宁波&offset=${count}&keywords=${key}`;
 
   fetch(url).then(res => {
@@ -740,7 +831,7 @@ const searchLines = (key, count) => {
 
 }
 
-const searchDetail = (type, key, map) => {
+function searchDetail(type, key, map) {
   if (type === 'bus') {
     let url = `http://restapi.amap.com/v3/bus/linename?s=rsv3&extensions=all&key=fbd79c02b1207d950a9d040483ef40e5&pageIndex=1&city=宁波&offset=2&keywords=${key}`;
 
@@ -829,7 +920,7 @@ const searchDetail = (type, key, map) => {
   }
 }
 
-const renderBusLines = () => {
+function renderBusLines() {
   const lines = new Storage('allLines').get();
   const busListEle = document.getElementById('busList');
   const lineListEle = document.getElementById('lineList');
@@ -864,7 +955,7 @@ const renderBusLines = () => {
 
 }
 
-const renderBusDetail = (busLine, map) => {
+function renderBusDetail(busLine, map) {
   const busDetailEle = document.getElementById('busDetail');
   const bdHeadEle = document.getElementById('bdHead');
   const bdLabelEle = document.getElementById('bdLabel');
@@ -939,7 +1030,7 @@ const renderBusDetail = (busLine, map) => {
   map.setFitView(line);
 }
 
-const renderStopDetail = stop => {
+function renderStopDetail(stop) {
   const stopNameEle = document.getElementById('stopName');
   const stopContentEle = document.getElementById('stopContent');
   let contentTmpl = '';
@@ -1046,7 +1137,7 @@ const renderStopDetail = stop => {
 
 }
 
-const drawLine = (map, path) => {
+function drawLine(map, path) {
   return new AMap.Polyline({
     map: map,
     path: path,
@@ -1055,7 +1146,7 @@ const drawLine = (map, path) => {
   });
 }
 
-const addMarkers = (map, markerList, type = 'default') => {
+function addMarkers(map, markerList, type = 'default') {
   let markers = [];
   let marker;
   let option = {
@@ -1140,7 +1231,7 @@ const addMarkers = (map, markerList, type = 'default') => {
   return markers;
 }
 
-const openAlarm = info => {
+function openAlarm(info) {
   const alarmWrapEle = document.getElementById('alarmWrap');
   const alarmInfoEle = document.getElementById('alarmInfo');
   const alarmStartEle = document.getElementById('alarmStart');
@@ -1166,7 +1257,7 @@ const openAlarm = info => {
   alarmWrapEle.classList.add(CSS_SHOW);
 }
 
-const renderPlaceDetail = (place, map) => {
+function renderPlaceDetail(place, map) {
   const placeDetailEle = document.getElementById('placeDetail');
   const placeNameEle = document.getElementById('placeName');
   const placeToBtn = document.getElementById('placeToBtn');
@@ -1253,7 +1344,7 @@ const renderPlaceDetail = (place, map) => {
   map.setFitView(circle);
 }
 
-const getNearBy = poi => {
+function getNearBy(poi) {
   const location = Geolocation.mars2Gps(poi);
   const busUrl = `http://restapi.amap.com/v3/place/around?s=rsv3&location=${poi.lng},${poi.lat}&key=fbd79c02b1207d950a9d040483ef40e5&radius=500&offset=5&page=1&city=宁波&keywords=公交站`;
   const subwayUrl = `http://restapi.amap.com/v3/place/around?s=rsv3&location=${poi.lng},${poi.lat}&key=fbd79c02b1207d950a9d040483ef40e5&radius=500&offset=5&page=1&city=宁波&keywords=地铁站`;
@@ -1267,7 +1358,7 @@ const getNearBy = poi => {
   return Rx.Observable.forkJoin(fetchBus$, fetchSubway$, fetchBike$, fetchCar$);
 }
 
-const getNearbyBus = stopList => {
+function getNearbyBus(stopList) {
   let tmpl = '';
   let poi;
   let markers = [];
@@ -1328,7 +1419,7 @@ const getNearbyBus = stopList => {
   return { tmpl, markers };
 }
 
-const getNearbySubway = stopList => {
+function getNearbySubway(stopList) {
   let tmpl = '';
   let poi;
   let markers = [];
@@ -1389,7 +1480,7 @@ const getNearbySubway = stopList => {
   return { tmpl, markers };
 }
 
-const getNearbyBike = stopList => {
+function getNearbyBike(stopList) {
   let tmpl = '';
   let poi;
   let markers = [];
@@ -1434,7 +1525,7 @@ const getNearbyBike = stopList => {
   return { tmpl, markers };
 }
 
-const getNearbyCar = stopList => {
+function getNearbyCar(stopList) {
   let tmpl = '';
   let poi;
   let taxiMarkers = [];
@@ -1487,14 +1578,14 @@ const getNearbyCar = stopList => {
   return { tmpl, taxiMarkers, carMarkers };
 }
 
-const str2poi = str => {
+function str2poi(str) {
   return {
     lng: +str.split(',')[0],
     lat: +str.split(',')[1]
   }
 }
 
-const cacheAllLines = () => {
+function cacheAllLines() {
   let url = 'http://122.227.209.115:8008/bus/lines?operId=0&time=1';
 
   fetch(url).then(res => {
